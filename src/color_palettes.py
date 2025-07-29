@@ -467,6 +467,106 @@ def get_complementary_color(color):
     except:
         return color
 
+def create_linear_gradient(color1, color2, direction="to right"):
+    """
+    Creates a CSS linear gradient string
+    """
+    return f"linear-gradient({direction}, {color1}, {color2})"
+
+def create_radial_gradient(color1, color2, shape="circle"):
+    """
+    Creates a CSS radial gradient string
+    """
+    return f"radial-gradient({shape}, {color1}, {color2})"
+
+def create_multi_gradient(colors, gradient_type="linear", direction="to right"):
+    """
+    Creates a multi-color gradient
+    """
+    if len(colors) < 2:
+        return colors[0] if colors else "#ffffff"
+    
+    color_stops = ", ".join(colors)
+    
+    if gradient_type == "radial":
+        return f"radial-gradient(circle, {color_stops})"
+    else:
+        return f"linear-gradient({direction}, {color_stops})"
+
+def get_gradient_for_element(palette_name, element_type, element_subtype=None, gradient_style="linear"):
+    """
+    Gets gradient styling for specific elements
+    """
+    base_color = get_color_for_element(palette_name, element_type, element_subtype)
+    
+    # Generate gradient variations based on element type
+    if element_type == "highway":
+        # Roads get directional gradients
+        gradient_colors = get_gradient_colors(base_color, 2)
+        return create_linear_gradient(gradient_colors[0], gradient_colors[1], "90deg")
+    
+    elif element_type == "building":
+        # Buildings get subtle radial gradients for depth
+        lighter = lighten_color(base_color, 0.1)
+        return create_radial_gradient(lighter, base_color)
+    
+    elif element_type == "natural" and element_subtype == "water":
+        # Water gets flowing gradients
+        darker = darken_color(base_color, 0.2)
+        return create_linear_gradient(base_color, darker, "45deg")
+    
+    elif element_type == "landuse":
+        # Land areas get subtle multi-tone gradients
+        gradient_colors = get_gradient_colors(base_color, 3)
+        return create_multi_gradient(gradient_colors, "linear", "135deg")
+    
+    else:
+        # Default gradient
+        lighter = lighten_color(base_color, 0.05)
+        return create_linear_gradient(base_color, lighter)
+
+def lighten_color(color, factor=0.1):
+    """
+    Lightens a hex color by a given factor
+    """
+    if not color.startswith('#'):
+        return color
+    
+    try:
+        hex_color = color[1:]
+        r = int(hex_color[0:2], 16)
+        g = int(hex_color[2:4], 16)
+        b = int(hex_color[4:6], 16)
+        
+        r = min(255, int(r + (255 - r) * factor))
+        g = min(255, int(g + (255 - g) * factor))
+        b = min(255, int(b + (255 - b) * factor))
+        
+        return f'#{r:02x}{g:02x}{b:02x}'
+    except:
+        return color
+
+def darken_color(color, factor=0.1):
+    """
+    Darkens a hex color by a given factor
+    """
+    if not color.startswith('#'):
+        return color
+    
+    try:
+        hex_color = color[1:]
+        r = int(hex_color[0:2], 16)
+        g = int(hex_color[2:4], 16)
+        b = int(hex_color[4:6], 16)
+        
+        r = max(0, int(r * (1 - factor)))
+        g = max(0, int(g * (1 - factor)))
+        b = max(0, int(b * (1 - factor)))
+        
+        return f'#{r:02x}{g:02x}{b:02x}'
+    except:
+        return color
+
 def get_color_for_element(palette_name, element_type, element_subtype=None):
     """
     Gets color for specific element according to selected palette

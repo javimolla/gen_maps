@@ -4,7 +4,7 @@ Custom map generator with OpenStreetMap data
 
 import folium
 from folium import plugins
-from color_palettes import get_color_for_element, get_gradient_colors, get_complementary_color
+from color_palettes import get_color_for_element, get_gradient_colors, get_complementary_color, get_gradient_for_element
 from osm_data import OSMDataFetcher
 import base64
 import io
@@ -97,6 +97,7 @@ class MapGenerator:
             
             subtype = element.get('subtype', 'unknown')
             color = get_color_for_element(self.palette_name, element_type, subtype)
+            gradient = get_gradient_for_element(self.palette_name, element_type, subtype)
             coords = element['coordinates']
             area = self._calculate_polygon_area(coords)
             
@@ -121,16 +122,22 @@ class MapGenerator:
                 # Efecto sutil sin múltiples capas para reducir complejidad visual
                 pass  # Eliminamos las ondas concéntricas
                 
-                # Área principal con estilo más limpio
+                # Área principal con gradiente
+                style_dict = {
+                    'fillColor': color,
+                    'fillOpacity': 0.6,
+                    'color': color,
+                    'weight': 1,
+                    'opacity': 0.8
+                }
+                
+                # Add gradient background using CSS
+                style_dict['fillColor'] = gradient
+                
                 folium.Polygon(
                     locations=coords,
                     popup=f"{element_type.title()}: {subtype.replace('_', ' ').title()}",
-                    color=color,
-                    fill=True,
-                    fillColor=color,
-                    fillOpacity=0.6,
-                    weight=1,
-                    opacity=0.8
+                    style_function=lambda x, style=style_dict: style
                 ).add_to(map_obj)
             else:
                 # Generative color variation based on position and style
@@ -175,6 +182,7 @@ class MapGenerator:
             
             building_type = building.get('subtype', 'yes')
             color = get_color_for_element(self.palette_name, 'building', building_type)
+            gradient = get_gradient_for_element(self.palette_name, 'building', building_type)
             
             # Calcular área aproximada del edificio para determinar importancia
             coords = building['coordinates']
@@ -191,16 +199,19 @@ class MapGenerator:
             )
             
             if is_prominent:
-                # Edificio destacado con estilo limpio
+                # Edificio destacado con gradiente
+                style_dict = {
+                    'fillColor': gradient,
+                    'fillOpacity': 0.8,
+                    'color': self._darken_color(color),
+                    'weight': 1.5,
+                    'opacity': 0.9
+                }
+                
                 folium.Polygon(
                     locations=coords,
                     popup=f"{building_type.replace('_', ' ').title()}",
-                    color=self._darken_color(color),
-                    fill=True,
-                    fillColor=color,
-                    fillOpacity=0.8,
-                    weight=1.5,
-                    opacity=0.9
+                    style_function=lambda x, style=style_dict: style
                 ).add_to(map_obj)
             else:
                 # Generative building clustering and variation
@@ -284,6 +295,8 @@ class MapGenerator:
                 continue
                 
             highway_type = highway.get('subtype', 'residential')
+            color = get_color_for_element(self.palette_name, 'highway', highway_type)
+            gradient = get_gradient_for_element(self.palette_name, 'highway', highway_type)
             
             # Generative road filtering based on style
             if self.style_variation == 'organic':
@@ -301,7 +314,6 @@ class MapGenerator:
                 if highway_type not in ['motorway', 'trunk', 'primary']:
                     continue
                 
-            color = get_color_for_element(self.palette_name, 'highway', highway_type)
             width = width_map.get(highway_type, 1.5)
             
             opacity = opacity_map.get(highway_type, 0.7)
@@ -325,8 +337,8 @@ class MapGenerator:
                     opacity=0.3
                 ).add_to(map_obj)
             
-            # Generative road styling
-            final_color = color
+            # Generative road styling with gradients
+            final_color = gradient if 'linear-gradient' in gradient else color
             final_width = width
             final_opacity = opacity
             
@@ -340,13 +352,29 @@ class MapGenerator:
                 final_opacity *= random.uniform(0.6, 1.0)
                 final_color = self._vary_color(color, random.uniform(0.8, 1.2))
             
-            folium.PolyLine(
-                locations=highway['coordinates'],
-                popup=f"{highway_type.replace('_', ' ').title()}",
-                color=final_color,
-                weight=final_width,
-                opacity=final_opacity
-            ).add_to(map_obj)
+            # Use gradient styling for roads
+            if 'linear-gradient' in final_color:
+                # Create custom CSS styling for gradient roads
+                road_style = {
+                    'color': color,  # fallback color
+                    'weight': final_width,
+                    'opacity': final_opacity,
+                    'background': final_color
+                }
+                
+                folium.PolyLine(
+                    locations=highway['coordinates'],
+                    popup=f"{highway_type.replace('_', ' ').title()}",
+                    style_function=lambda x, style=road_style: style
+                ).add_to(map_obj)
+            else:
+                folium.PolyLine(
+                    locations=highway['coordinates'],
+                    popup=f"{highway_type.replace('_', ' ').title()}",
+                    color=final_color,
+                    weight=final_width,
+                    opacity=final_opacity
+                ).add_to(map_obj)
     
     def _add_railways(self, map_obj, railways):
         """
@@ -452,6 +480,21 @@ class MapGenerator:
         
         .gradient-line {{
             background: linear-gradient(90deg, var(--start-color), var(--end-color));
+        }}
+        
+        /* Gradient support for polygons */
+        .leaflet-interactive {{
+            transition: all 0.2s ease;
+        }}
+        
+        .gradient-fill {{
+            background-image: var(--gradient-fill);
+        }}
+        
+        /* Road gradient styling */
+        .gradient-road {{
+            background: var(--road-gradient);
+            background-size: 100% 100%;
         }}
         </style>
         """
