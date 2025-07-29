@@ -65,6 +65,12 @@ Usage examples:
     )
     
     parser.add_argument(
+        '--gradients', '-g',
+        action='store_true',
+        help='Enable gradient styling for elements'
+    )
+    
+    parser.add_argument(
         '--export-image', '-i',
         type=str,
         help='Export as PNG image (e.g.: map.png)'
@@ -99,7 +105,11 @@ Usage examples:
     
     try:
         # Create map generator
-        generator = MapGenerator(palette_name=args.palette, seed=args.seed)
+        generator = MapGenerator(
+            palette_name=args.palette, 
+            seed=args.seed,
+            use_gradients=args.gradients
+        )
         
         # Determine location
         if args.address:

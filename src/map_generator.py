@@ -12,8 +12,9 @@ import random
 import colorsys
 
 class MapGenerator:
-    def __init__(self, palette_name="classic", seed=None):
+    def __init__(self, palette_name="classic", seed=None, use_gradients=False):
         self.palette_name = palette_name
+        self.use_gradients = use_gradients
         self.osm_fetcher = OSMDataFetcher()
         # Seed for reproducible generative art
         import random
@@ -97,8 +98,13 @@ class MapGenerator:
             
             subtype = element.get('subtype', 'unknown')
             color = get_color_for_element(self.palette_name, element_type, subtype)
-            gradient = get_gradient_for_element(self.palette_name, element_type, subtype)
             coords = element['coordinates']
+            
+            # Use gradient only if enabled
+            if self.use_gradients:
+                gradient = get_gradient_for_element(self.palette_name, element_type, subtype)
+            else:
+                gradient = color
             area = self._calculate_polygon_area(coords)
             
             # Generative prominence based on seed and style
@@ -182,7 +188,12 @@ class MapGenerator:
             
             building_type = building.get('subtype', 'yes')
             color = get_color_for_element(self.palette_name, 'building', building_type)
-            gradient = get_gradient_for_element(self.palette_name, 'building', building_type)
+            
+            # Use gradient only if enabled
+            if self.use_gradients:
+                gradient = get_gradient_for_element(self.palette_name, 'building', building_type)
+            else:
+                gradient = color
             
             # Calcular área aproximada del edificio para determinar importancia
             coords = building['coordinates']
@@ -296,7 +307,12 @@ class MapGenerator:
                 
             highway_type = highway.get('subtype', 'residential')
             color = get_color_for_element(self.palette_name, 'highway', highway_type)
-            gradient = get_gradient_for_element(self.palette_name, 'highway', highway_type)
+            
+            # Use gradient only if enabled
+            if self.use_gradients:
+                gradient = get_gradient_for_element(self.palette_name, 'highway', highway_type)
+            else:
+                gradient = color
             
             # Generative road filtering based on style
             if self.style_variation == 'organic':
@@ -338,7 +354,7 @@ class MapGenerator:
                 ).add_to(map_obj)
             
             # Generative road styling with gradients
-            final_color = gradient if 'linear-gradient' in gradient else color
+            final_color = gradient if (self.use_gradients and 'linear-gradient' in gradient) else color
             final_width = width
             final_opacity = opacity
             
@@ -352,8 +368,8 @@ class MapGenerator:
                 final_opacity *= random.uniform(0.6, 1.0)
                 final_color = self._vary_color(color, random.uniform(0.8, 1.2))
             
-            # Use gradient styling for roads
-            if 'linear-gradient' in final_color:
+            # Use gradient styling for roads if enabled
+            if self.use_gradients and 'linear-gradient' in final_color:
                 # Create custom CSS styling for gradient roads
                 road_style = {
                     'color': color,  # fallback color
