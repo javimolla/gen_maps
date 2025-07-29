@@ -66,7 +66,7 @@ python3 main.py [LOCATION] [OPTIONS]
 --palette, -p PALETTE       Color palette (see --list-palettes)
 --seed, -s INT             Seed for reproducible art
 --gradients, -g            Enable gradient styling for elements
---radius, -r FLOAT         Radius in kilometers (default: 1.0)
+--radius, -r FLOAT         Radius in kilometers (default: 0.5)
 
 # Export
 --output, -o FILE          HTML file (default: map.html)
