@@ -71,6 +71,7 @@ python3 main.py [LOCATION] [OPTIONS]
 # Export
 --output, -o FILE          HTML file (default: map.html)
 --export-image, -i FILE    Export as high-quality PNG
+--image-size, -size INT    Image size in pixels (default: 1200)
 
 # Utilities
 --list-palettes            Show available palettes

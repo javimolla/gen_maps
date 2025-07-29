@@ -76,6 +76,13 @@ Usage examples:
         help='Export as PNG image (e.g.: map.png)'
     )
     
+    parser.add_argument(
+        '--image-size', '-size',
+        type=int,
+        default=1200,
+        help='Image size in pixels (width and height, default: 1200)'
+    )
+    
     # Informational options
     parser.add_argument(
         '--list-palettes',
@@ -150,13 +157,13 @@ Usage examples:
                     time.sleep(3)
                     
                     # Configure viewport for generative art
-                    page.set_viewport_size({"width": 1200, "height": 1200})
+                    page.set_viewport_size({"width": args.image_size, "height": args.image_size})
                     
                     # Take screenshot without controls
                     page.screenshot(
                         path=args.export_image,
                         full_page=False,
-                        clip={"x": 0, "y": 0, "width": 1200, "height": 1200}
+                        clip={"x": 0, "y": 0, "width": args.image_size, "height": args.image_size}
                     )
                     
                     browser.close()
