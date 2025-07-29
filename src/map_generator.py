@@ -39,17 +39,19 @@ class MapGenerator:
         """
         # Calculate appropriate zoom based on radius
         if zoom_start is None:
-            # Formula to calculate zoom based on radius to minimize white space
-            if radius_km <= 0.5:
-                zoom_start = 16
+            # Higher zoom levels to minimize white space
+            if radius_km <= 0.3:
+                zoom_start = 18
+            elif radius_km <= 0.5:
+                zoom_start = 17
             elif radius_km <= 1:
-                zoom_start = 15
+                zoom_start = 16
             elif radius_km <= 2:
-                zoom_start = 14
+                zoom_start = 15
             elif radius_km <= 5:
-                zoom_start = 13
+                zoom_start = 14
             else:
-                zoom_start = 12
+                zoom_start = 13
         
         # Crear mapa base con estilo personalizado
         m = folium.Map(
