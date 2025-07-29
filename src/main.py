@@ -39,8 +39,8 @@ Usage examples:
     parser.add_argument(
         '--radius', '-r',
         type=float,
-        default=0.5,
-        help='Radius in kilometers (default: 0.5 km)'
+        default=1.0,
+        help='Radius in kilometers (default: 1.0 km)'
     )
     
     parser.add_argument(
