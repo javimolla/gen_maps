@@ -1,6 +1,6 @@
 # Generated output directories
-generated_output/
-test_maps/
+output/generated/
+examples/
 
 # Temporary files
 *.tmp
