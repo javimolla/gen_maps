@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Aplicación de línea de comandos para generar mapas personalizados
+Command line application for generating custom maps
 """
 
 import argparse
@@ -10,37 +10,37 @@ from color_palettes import list_palettes
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Genera mapas personalizados con datos de OpenStreetMap",
+        description="Generate custom maps with OpenStreetMap data",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
-Ejemplos de uso:
+Usage examples:
   python main.py --address "Plaza Mayor, Madrid" --radius 1 --palette classic
   python main.py --coords 40.4168 -3.7038 --radius 2 --palette ocean --output madrid_ocean.html
   python main.py --list-palettes
         """
     )
     
-    # Grupo para ubicación
+    # Location group
     location_group = parser.add_mutually_exclusive_group(required=False)
     location_group.add_argument(
         '--address', '-a',
         type=str,
-        help='Dirección a buscar (ej: "Plaza Mayor, Madrid")'
+        help='Address to search (e.g.: "Plaza Mayor, Madrid")'
     )
     location_group.add_argument(
         '--coords', '-c',
         nargs=2,
         type=float,
         metavar=('LAT', 'LON'),
-        help='Coordenadas GPS (latitud longitud)'
+        help='GPS coordinates (latitude longitude)'
     )
     
-    # Parámetros del mapa
+    # Map parameters
     parser.add_argument(
         '--radius', '-r',
         type=float,
         default=1.0,
-        help='Radio en kilómetros (por defecto: 1.0 km)'
+        help='Radius in kilometers (default: 1.0 km)'
     )
     
     parser.add_argument(
@@ -48,64 +48,117 @@ Ejemplos de uso:
         type=str,
         default='classic',
         choices=list_palettes(),
-        help=f'Paleta de colores a usar (opciones: {", ".join(list_palettes())})'
+        help=f'Color palette to use (options: {", ".join(list_palettes())})'
     )
     
     parser.add_argument(
         '--output', '-o',
         type=str,
         default='map.html',
-        help='Archivo de salida (por defecto: map.html)'
+        help='Output file (default: map.html)'
     )
     
-    # Opciones informativas
+    parser.add_argument(
+        '--seed', '-s',
+        type=int,
+        help='Seed for reproducible generative art'
+    )
+    
+    parser.add_argument(
+        '--export-image', '-i',
+        type=str,
+        help='Export as PNG image (e.g.: map.png)'
+    )
+    
+    # Informational options
     parser.add_argument(
         '--list-palettes',
         action='store_true',
-        help='Muestra las paletas de colores disponibles'
+        help='Show available color palettes'
     )
     
     args = parser.parse_args()
     
-    # Mostrar paletas disponibles
+    # Show available palettes
     if args.list_palettes:
-        print("Paletas de colores disponibles:")
+        print("Available color palettes:")
         for palette in list_palettes():
             print(f"  - {palette}")
         return
     
-    # Validar que se proporcione una ubicación
+    # Validate that a location is provided
     if not args.address and not args.coords:
-        print("Error: Debes proporcionar una dirección (--address) o coordenadas (--coords)")
+        print("Error: You must provide an address (--address) or coordinates (--coords)")
         parser.print_help()
         sys.exit(1)
     
-    # Validar radio
+    # Validate radius
     if args.radius <= 0:
-        print("Error: El radio debe ser mayor que 0")
+        print("Error: Radius must be greater than 0")
         sys.exit(1)
     
     try:
-        # Crear generador de mapas
-        generator = MapGenerator(palette_name=args.palette)
+        # Create map generator
+        generator = MapGenerator(palette_name=args.palette, seed=args.seed)
         
-        # Determinar ubicación
+        # Determine location
         if args.address:
             location = args.address
-            print(f"Buscando dirección: {args.address}")
+            print(f"Searching address: {args.address}")
         else:
             location = tuple(args.coords)
-            print(f"Usando coordenadas: {args.coords[0]}, {args.coords[1]}")
+            print(f"Using coordinates: {args.coords[0]}, {args.coords[1]}")
         
-        # Generar mapa
+        # Generate map
         generator.generate_custom_map(
             location=location,
             radius_km=args.radius,
             output_file=args.output
         )
         
-        print(f"\n✓ Mapa generado exitosamente: {args.output}")
-        print(f"Abre el archivo en tu navegador para ver el resultado.")
+        print(f"\n✓ Map generated successfully: {args.output}")
+        
+        # Export as image if requested
+        if args.export_image:
+            try:
+                from playwright.sync_api import sync_playwright
+                import os
+                import time
+                
+                print(f"Exporting to image: {args.export_image}")
+                
+                with sync_playwright() as p:
+                    browser = p.chromium.launch(headless=True)
+                    page = browser.new_page()
+                    
+                    # Load HTML map
+                    map_path = os.path.abspath(args.output)
+                    page.goto(f"file://{map_path}")
+                    
+                    # Wait for complete load
+                    page.wait_for_load_state("networkidle")
+                    time.sleep(3)
+                    
+                    # Configure viewport for generative art
+                    page.set_viewport_size({"width": 1200, "height": 1200})
+                    
+                    # Take screenshot without controls
+                    page.screenshot(
+                        path=args.export_image,
+                        full_page=False,
+                        clip={"x": 0, "y": 0, "width": 1200, "height": 1200}
+                    )
+                    
+                    browser.close()
+                
+                print(f"✓ Image exported: {args.export_image}")
+                
+            except ImportError:
+                print("Error: Playwright is not installed. Install it with 'pip install playwright'")
+            except Exception as e:
+                print(f"Error exporting image: {e}")
+        else:
+            print(f"Open the file in your browser to see the result.")
         
     except Exception as e:
         print(f"Error: {str(e)}")

@@ -1,8 +1,8 @@
 """
-Paletas de colores predefinidas para elementos de OpenStreetMap
+Predefined color palettes for OpenStreetMap elements
 """
 
-# Paletas de colores disponibles
+# Available color palettes
 COLOR_PALETTES = {
     "neon_city": {
         "highway": {
@@ -420,13 +420,13 @@ COLOR_PALETTES = {
 
 def get_gradient_colors(base_color, steps=3):
     """
-    Genera una serie de colores para crear efectos de gradiente más sutiles
+    Generates a series of colors to create more subtle gradient effects
     """
     if not base_color.startswith('#'):
         return [base_color] * steps
     
     try:
-        # Convertir hex a RGB
+        # Convert hex to RGB
         hex_color = base_color[1:]
         r = int(hex_color[0:2], 16)
         g = int(hex_color[2:4], 16)
@@ -434,8 +434,8 @@ def get_gradient_colors(base_color, steps=3):
         
         colors = []
         for i in range(steps):
-            # Variaciones más sutiles para menos ruido visual
-            factor = 0.9 + (i * 0.2 / steps)  # Entre 0.9 y 1.1
+            # More subtle variations for less visual noise
+            factor = 0.9 + (i * 0.2 / steps)  # Between 0.9 and 1.1
             new_r = min(255, max(0, int(r * factor)))
             new_g = min(255, max(0, int(g * factor)))
             new_b = min(255, max(0, int(b * factor)))
@@ -447,7 +447,7 @@ def get_gradient_colors(base_color, steps=3):
 
 def get_complementary_color(color):
     """
-    Obtiene el color complementario para efectos de contraste
+    Gets complementary color for contrast effects
     """
     if not color.startswith('#'):
         return color
@@ -458,7 +458,7 @@ def get_complementary_color(color):
         g = int(hex_color[2:4], 16)
         b = int(hex_color[4:6], 16)
         
-        # Calcular complementario
+        # Calculate complementary
         comp_r = 255 - r
         comp_g = 255 - g
         comp_b = 255 - b
@@ -469,7 +469,7 @@ def get_complementary_color(color):
 
 def get_color_for_element(palette_name, element_type, element_subtype=None):
     """
-    Obtiene el color para un elemento específico según la paleta seleccionada
+    Gets color for specific element according to selected palette
     """
     if palette_name not in COLOR_PALETTES:
         palette_name = "classic"
@@ -478,7 +478,7 @@ def get_color_for_element(palette_name, element_type, element_subtype=None):
     
     if element_type in palette:
         if isinstance(palette[element_type], dict) and element_subtype:
-            # Buscar subtipo específico, o usar un fallback apropiado
+            # Search for specific subtype, or use appropriate fallback
             if element_subtype in palette[element_type]:
                 return palette[element_type][element_subtype]
             elif element_type == "highway":
@@ -488,15 +488,15 @@ def get_color_for_element(palette_name, element_type, element_subtype=None):
             elif element_type == "railway":
                 return palette[element_type].get("rail", "#444444")
             else:
-                # Para landuse y natural, usar el primer valor disponible
+                # For landuse and natural, use first available value
                 return list(palette[element_type].values())[0] if palette[element_type] else "#ffffff"
         elif isinstance(palette[element_type], str):
             return palette[element_type]
     
-    return "#ffffff"  # Color por defecto
+    return "#ffffff"  # Default color
 
 def list_palettes():
     """
-    Devuelve la lista de paletas disponibles
+    Returns list of available palettes
     """
     return list(COLOR_PALETTES.keys())

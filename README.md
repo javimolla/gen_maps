@@ -1,69 +1,159 @@
-# Generador de Mapas Personalizados
+# Generative Map Art Generator
 
-Una aplicación para generar mapas personalizados con datos de OpenStreetMap y paletas de colores predefinidas.
+A generative art system that transforms real OpenStreetMap data into unique and unrepeatable artworks.
 
-## Características
+## ✨ Features
 
-- **Búsqueda por dirección o coordenadas GPS**
-- **Radio configurable** para el área del mapa
-- **4 paletas de colores predefinidas**: classic, ocean, sunset, forest
-- **Elementos de mapa soportados**: calles, parques, ríos, edificios, ferrocarriles
-- **Salida en HTML** lista para abrir en navegador
+- **🎨 Generative Art**: Each map is a unique artwork based on creative algorithms
+- **🌱 Seed System**: Generate reproducible art with numerical seeds
+- **🎭 4 Generative Styles**: `organic`, `geometric`, `flow`, `structured`
+- **🎨 8 Color Palettes**: `classic`, `neon_city`, `cyberpunk`, `pastel_dream`, `ocean`, `sunset`, `forest`, `dark_mode`
+- **📍 Flexible Search**: By address or GPS coordinates
+- **🖼️ Direct Export**: Interactive HTML or high-quality PNG
+- **🔄 Infinite Variation**: Same location generates completely different art
 
-## Instalación
+## 🎯 Generative Art
 
-1. Instala las dependencias:
+This system is not just a map generator, but an **urban generative art** tool that:
+
+- **Interprets geographic data** as artistic elements
+- **Applies algorithmic variations** based on position, seed and style
+- **Generates dynamic palettes** with color, saturation and hue variations
+- **Creates unique compositions** where each execution produces different artwork
+
+### Generative Styles
+
+- **`organic`**: Fluid forms, hue variations, random elements
+- **`geometric`**: Mathematical precision, binary colors, rigid structure  
+- **`flow`**: Dynamic movement, variable saturation, fluctuating widths
+- **`structured`**: Architectural order, clear hierarchy, balanced composition
+
+## 🚀 Installation
+
 ```bash
+# Install dependencies
 pip install -r requirements.txt
+
+# Install Playwright for image export
+playwright install chromium
 ```
 
-## Uso
+## 🎨 Usage
 
-### Comandos básicos
+### Generate Generative Art
 
 ```bash
-# Generar mapa por dirección
-python3 main.py --address "Plaza Mayor, Madrid" --radius 1 --palette classic
+# Art with specific seed for reproducibility
+python3 main.py --coords 40.4168 -3.7038 --palette neon_city --seed 42 --export-image madrid_neon.png
 
-# Generar mapa por coordenadas
-python3 main.py --coords 40.4168 -3.7038 --radius 2 --palette ocean --output madrid_ocean.html
+# Explore different styles of same location
+python3 main.py --coords 51.5074 -0.1278 --palette cyberpunk --seed 999 --export-image london_cyber.png
 
-# Ver paletas disponibles
-python3 main.py --list-palettes
+# Organic art with pastel palette
+python3 main.py --address "Times Square, New York" --palette pastel_dream --seed 777 --export-image nyc_pastel.png
 ```
 
-### Parámetros
+### Complete Parameters
 
-- `--address, -a`: Dirección a buscar
-- `--coords, -c`: Coordenadas GPS (latitud longitud)
-- `--radius, -r`: Radio en kilómetros (por defecto: 1.0 km)
-- `--palette, -p`: Paleta de colores (classic, ocean, sunset, forest)
-- `--output, -o`: Archivo de salida (por defecto: map.html)
-- `--list-palettes`: Mostrar paletas disponibles
+```bash
+python3 main.py [LOCATION] [OPTIONS]
 
-### Paletas de colores
+# Location (one required)
+--address, -a TEXT          Address to search
+--coords, -c LAT LON        GPS coordinates
 
-- **classic**: Colores tradicionales de mapas
-- **ocean**: Tonos azules y verdes marinos
-- **sunset**: Colores cálidos naranjas y amarillos
-- **forest**: Tonos verdes naturales
+# Artistic configuration  
+--palette, -p PALETTE       Color palette (see --list-palettes)
+--seed, -s INT             Seed for reproducible art
+--radius, -r FLOAT         Radius in kilometers (default: 1.0)
 
-## Estructura del proyecto
+# Export
+--output, -o FILE          HTML file (default: map.html)
+--export-image, -i FILE    Export as high-quality PNG
+
+# Utilities
+--list-palettes            Show available palettes
+```
+
+### Artistic Palettes
+
+| Palette | Description | Best for |
+|---------|-------------|----------|
+| `classic` | Traditional cartographic colors | Minimal art, printing |
+| `neon_city` | Vibrant neons on dark background | Urban art, cyberpunk |
+| `cyberpunk` | Futuristic colors, high saturation | Sci-fi, gaming |
+| `pastel_dream` | Soft and relaxing tones | Decorative art, wellness |
+| `ocean` | Marine blues and greens | Coastal landscapes, calm |
+| `sunset` | Warm oranges and yellows | Emotional art, energy |
+| `forest` | Natural greens | Sustainability, nature |
+| `dark_mode` | Dark tones with bright accents | Modern interfaces, elegance |
+
+## 🎭 Generative Art Examples
+
+```bash
+# Madrid art collection with different seeds
+python3 main.py --coords 40.4168 -3.7038 --palette sunset --seed 123 --export-image madrid_1.png
+python3 main.py --coords 40.4168 -3.7038 --palette sunset --seed 456 --export-image madrid_2.png
+python3 main.py --coords 40.4168 -3.7038 --palette sunset --seed 789 --export-image madrid_3.png
+
+# Same place, different palettes
+python3 main.py --coords 48.8566 2.3522 --palette neon_city --seed 2024 --export-image paris_neon.png
+python3 main.py --coords 48.8566 2.3522 --palette pastel_dream --seed 2024 --export-image paris_pastel.png
+```
+
+## 🛠️ Project Structure
 
 ```
 gen_maps/
-├── main.py              # Interfaz de línea de comandos
-├── map_generator.py     # Generador principal de mapas
-├── osm_data.py         # Obtención de datos de OpenStreetMap
-├── color_palettes.py   # Definición de paletas de colores
-├── requirements.txt    # Dependencias de Python
-└── README.md          # Este archivo
+├── main.py                 # Main CLI with image export
+├── map_generator.py        # Generative art engine
+├── osm_data.py            # OpenStreetMap interface
+├── color_palettes.py      # Advanced palette system
+├── screenshot_map.py      # Screenshot utility
+├── generative_test.py     # Generative variation tests
+├── art_batch.py          # Batch art generation
+└── requirements.txt       # Dependencies
 ```
 
-## Desarrollo futuro
+## 🎨 Use Cases
 
-Esta versión CLI está diseñada para migrar fácilmente a una aplicación web con:
-- Interfaz visual para seleccionar ubicaciones
-- Preview en tiempo real de paletas de colores
-- Exportación a diferentes formatos
-- Editor de paletas personalizado
+### Digital Art
+- Creating unique pieces for exhibitions
+- Geography-based NFTs
+- Urban publication illustrations
+
+### Graphic Design
+- Abstract backgrounds for interfaces
+- Unique decorative patterns
+- Location-based visual identity
+
+### Urban Research
+- Alternative geographic data visualization
+- Aesthetic analysis of urban structures
+- Artistic comparison between cities
+
+## 🔮 Generative Algorithms
+
+The system implements multiple generative art techniques:
+
+- **Positional hashing**: Colors vary by geographic coordinates
+- **Emergent clustering**: Similar elements group naturally  
+- **Stochastic variation**: Seed-controlled randomization
+- **Color transformations**: HSV, dynamic saturation, complementaries
+- **Adaptive density**: Elements shown by generative importance
+- **Procedural effects**: Glow, shadows, variable transparencies
+
+## 📊 Reproducibility
+
+Each generated artwork includes:
+- **Unique seed**: To regenerate the exact same piece
+- **Identified style**: Specific algorithm applied
+- **Technical parameters**: Complete configuration for reproduction
+
+## 🌟 Upcoming Features
+
+- **Generative animations**: Maps that evolve in real time
+- **Custom palettes**: Visual color editor
+- **Hybrid styles**: Combination of multiple algorithms
+- **Vector export**: SVG for high-quality printing
+- **Web API**: Art generation from any application

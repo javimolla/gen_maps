@@ -1,5 +1,5 @@
 """
-Módulo para obtener datos de OpenStreetMap
+Module for fetching OpenStreetMap data
 """
 
 import overpy

@@ -1,5 +1,5 @@
 """
-Generador de mapas personalizados con datos de OpenStreetMap
+Custom map generator with OpenStreetMap data
 """
 
 import folium
@@ -8,11 +8,29 @@ from color_palettes import get_color_for_element, get_gradient_colors, get_compl
 from osm_data import OSMDataFetcher
 import base64
 import io
+import random
+import colorsys
 
 class MapGenerator:
-    def __init__(self, palette_name="classic"):
+    def __init__(self, palette_name="classic", seed=None):
         self.palette_name = palette_name
         self.osm_fetcher = OSMDataFetcher()
+        # Seed for reproducible generative art
+        import random
+        if seed is not None:
+            random.seed(seed)
+            self.seed = seed
+        else:
+            self.seed = random.randint(0, 999999)
+            random.seed(self.seed)
+        
+        # Generative parameters influenced by seed
+        self.noise_factor = random.uniform(0.3, 0.8)
+        self.color_variance = random.uniform(0.2, 0.6)
+        self.density_threshold = random.uniform(0.001, 0.005)
+        self.style_variation = random.choice(['organic', 'geometric', 'flow', 'structured'])
+        
+        print(f"Generative seed: {self.seed}, Style: {self.style_variation}")
     
     def create_map(self, lat, lon, radius_km, zoom_start=15):
         """
@@ -82,10 +100,21 @@ class MapGenerator:
             coords = element['coordinates']
             area = self._calculate_polygon_area(coords)
             
-            # Solo destacar elementos realmente importantes para reducir ruido visual
+            # Generative prominence based on seed and style
+            base_threshold = self.density_threshold
+            style_modifier = {
+                'organic': 0.7,
+                'geometric': 1.3, 
+                'flow': 0.5,
+                'structured': 1.0
+            }[self.style_variation]
+            
+            # Add some randomness for generative variety
+            random_factor = random.uniform(0.5, 1.5)
             is_prominent = (
-                area > 0.002 or  # Solo áreas muy grandes
-                subtype in ['forest', 'park', 'nature_reserve', 'water', 'lake']
+                area > (base_threshold * style_modifier * random_factor) or
+                subtype in ['forest', 'park', 'nature_reserve', 'water', 'lake'] or
+                (self.style_variation == 'organic' and random.random() < 0.3)
             )
             
             if is_prominent and element_type in ['landuse', 'natural']:
@@ -104,10 +133,24 @@ class MapGenerator:
                     opacity=0.8
                 ).add_to(map_obj)
             else:
-                # Add more variety to landuse colors
-                import random
-                variation = random.uniform(0.8, 1.2)
+                # Generative color variation based on position and style
+                pos_hash = hash(str(coords[0])) % 1000 / 1000.0
+                variation = 0.8 + (self.color_variance * pos_hash)
+                
+                if self.style_variation == 'organic':
+                    variation *= random.uniform(0.6, 1.4)
+                elif self.style_variation == 'geometric':
+                    variation = 0.9 + (0.2 * (pos_hash > 0.5))
+                
                 varied_color = self._vary_color(color, variation)
+                
+                # Style-based opacity and weight
+                opacity = {
+                    'organic': 0.5 + random.uniform(0, 0.3),
+                    'geometric': 0.8,
+                    'flow': 0.4 + (pos_hash * 0.4),
+                    'structured': 0.7
+                }[self.style_variation]
                 
                 folium.Polygon(
                     locations=coords,
@@ -115,9 +158,9 @@ class MapGenerator:
                     color=varied_color,
                     fill=True,
                     fillColor=varied_color,
-                    fillOpacity=0.6,
+                    fillOpacity=opacity,
                     weight=1,
-                    opacity=0.7
+                    opacity=opacity
                 ).add_to(map_obj)
     
     def _add_buildings(self, map_obj, buildings):
@@ -137,10 +180,14 @@ class MapGenerator:
             coords = building['coordinates']
             area = self._calculate_polygon_area(coords)
             
-            # Solo destacar edificios verdaderamente importantes
+            # Generative building prominence
+            pos_hash = hash(str(coords[0])) % 1000 / 1000.0
+            random_prominence = random.random() < (self.noise_factor * 0.3)
+            
             is_prominent = (
-                area > 0.0005 or  # Solo edificios muy grandes
-                building_type in ['cathedral', 'hospital', 'university', 'government']
+                area > (0.0005 * random.uniform(0.5, 2.0)) or
+                building_type in ['cathedral', 'hospital', 'university', 'government'] or
+                (self.style_variation in ['organic', 'flow'] and random_prominence)
             )
             
             if is_prominent:
@@ -156,10 +203,28 @@ class MapGenerator:
                     opacity=0.9
                 ).add_to(map_obj)
             else:
-                # Add variety to building colors
-                import random
-                variation = random.uniform(0.7, 1.3)
-                varied_color = self._vary_color(color, variation)
+                # Generative building clustering and variation
+                pos_hash = hash(str(coords[0])) % 1000 / 1000.0
+                cluster_factor = 1.0 + (pos_hash * self.color_variance)
+                
+                if self.style_variation == 'organic':
+                    variation = 0.5 + (pos_hash * 1.0)
+                elif self.style_variation == 'geometric': 
+                    variation = 0.8 + (0.4 * (pos_hash > 0.6))
+                elif self.style_variation == 'flow':
+                    variation = 0.7 + (0.6 * abs(pos_hash - 0.5))
+                else:  # structured
+                    variation = 0.9 + (0.2 * random.random())
+                
+                varied_color = self._vary_color(color, variation * cluster_factor)
+                
+                # Style-based fill opacity
+                fill_opacity = {
+                    'organic': 0.4 + (pos_hash * 0.4),
+                    'geometric': 0.8,
+                    'flow': 0.3 + (0.5 * pos_hash),
+                    'structured': 0.7
+                }[self.style_variation]
                 
                 folium.Polygon(
                     locations=coords,
@@ -167,7 +232,7 @@ class MapGenerator:
                     color=varied_color,
                     fill=True,
                     fillColor=varied_color,
-                    fillOpacity=0.7,
+                    fillOpacity=fill_opacity,
                     weight=1,
                     opacity=0.8
                 ).add_to(map_obj)
@@ -220,17 +285,38 @@ class MapGenerator:
                 
             highway_type = highway.get('subtype', 'residential')
             
-            # Skip all roads except major ones
-            if highway_type not in ['motorway', 'trunk', 'primary']:
-                continue
+            # Generative road filtering based on style
+            if self.style_variation == 'organic':
+                # More organic, include some secondary roads randomly
+                if highway_type not in ['motorway', 'trunk', 'primary', 'secondary'] or \
+                   (highway_type == 'secondary' and random.random() > 0.6):
+                    continue
+            elif self.style_variation == 'flow':
+                # Flowing style, include residential sometimes
+                if highway_type not in ['motorway', 'trunk', 'primary'] and \
+                   not (highway_type == 'residential' and random.random() < 0.2):
+                    continue
+            else:
+                # Geometric/structured: only major roads
+                if highway_type not in ['motorway', 'trunk', 'primary']:
+                    continue
                 
             color = get_color_for_element(self.palette_name, 'highway', highway_type)
             width = width_map.get(highway_type, 1.5)
             
             opacity = opacity_map.get(highway_type, 0.7)
             
-            # Solo efectos sutiles para carreteras principales
-            if highway_type in ['motorway', 'trunk'] and width > 3:
+            # Generative road effects based on style
+            if self.style_variation == 'organic' and random.random() < 0.4:
+                # Organic glow effect
+                glow_color = self._vary_color(color, 0.7)
+                folium.PolyLine(
+                    locations=highway['coordinates'],
+                    color=glow_color,
+                    weight=width + 1,
+                    opacity=0.2
+                ).add_to(map_obj)
+            elif highway_type in ['motorway', 'trunk'] and width > 3:
                 shadow_color = '#333333' if self.palette_name not in ['dark_mode'] else '#666666'
                 folium.PolyLine(
                     locations=highway['coordinates'],
@@ -239,13 +325,27 @@ class MapGenerator:
                     opacity=0.3
                 ).add_to(map_obj)
             
-            # Línea principal con gradiente simulado
+            # Generative road styling
+            final_color = color
+            final_width = width
+            final_opacity = opacity
+            
+            if self.style_variation == 'flow':
+                # Flowing style with varied widths
+                flow_factor = random.uniform(0.7, 1.3)
+                final_width *= flow_factor
+                final_color = self._vary_color(color, flow_factor)
+            elif self.style_variation == 'organic':
+                # Organic variation
+                final_opacity *= random.uniform(0.6, 1.0)
+                final_color = self._vary_color(color, random.uniform(0.8, 1.2))
+            
             folium.PolyLine(
                 locations=highway['coordinates'],
                 popup=f"{highway_type.replace('_', ' ').title()}",
-                color=color,
-                weight=width,
-                opacity=opacity
+                color=final_color,
+                weight=final_width,
+                opacity=final_opacity
             ).add_to(map_obj)
     
     def _add_railways(self, map_obj, railways):
@@ -286,9 +386,9 @@ class MapGenerator:
         else:
             lat, lon = location
         
-        print(f"Generando mapa para coordenadas: {lat}, {lon}")
-        print(f"Radio: {radius_km} km")
-        print(f"Paleta de colores: {self.palette_name}")
+        print(f"Generando mapa generativo para coordenadas: {lat}, {lon}")
+        print(f"Radio: {radius_km} km, Paleta: {self.palette_name}")
+        print(f"Seed: {self.seed}, Estilo: {self.style_variation}")
         
         # Obtener datos de OSM
         print("Obteniendo datos de OpenStreetMap...")
@@ -427,7 +527,7 @@ class MapGenerator:
     
     def _vary_color(self, color, factor):
         """
-        Adds variation to a color for visual diversity
+        Generative color variation with multiple methods
         """
         if not color.startswith('#'):
             return color
@@ -438,9 +538,25 @@ class MapGenerator:
             g = int(hex_color[2:4], 16) 
             b = int(hex_color[4:6], 16)
             
-            r = min(255, max(0, int(r * factor)))
-            g = min(255, max(0, int(g * factor)))
-            b = min(255, max(0, int(b * factor)))
+            if self.style_variation == 'organic':
+                # Organic: shift hue slightly
+                import colorsys
+                h, s, v = colorsys.rgb_to_hsv(r/255, g/255, b/255)
+                h = (h + random.uniform(-0.1, 0.1)) % 1.0
+                r, g, b = colorsys.hsv_to_rgb(h, s, v)
+                r, g, b = int(r*255), int(g*255), int(b*255)
+            elif self.style_variation == 'flow':
+                # Flow: adjust saturation
+                import colorsys
+                h, s, v = colorsys.rgb_to_hsv(r/255, g/255, b/255)
+                s = min(1.0, max(0.0, s * factor))
+                r, g, b = colorsys.hsv_to_rgb(h, s, v)
+                r, g, b = int(r*255), int(g*255), int(b*255)
+            else:
+                # Geometric/structured: brightness only
+                r = min(255, max(0, int(r * factor)))
+                g = min(255, max(0, int(g * factor)))
+                b = min(255, max(0, int(b * factor)))
             
             return f'#{r:02x}{g:02x}{b:02x}'
         except:
