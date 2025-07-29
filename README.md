@@ -46,11 +46,11 @@ playwright install chromium
 # Art with specific seed for reproducibility
 python3 main.py --coords 40.4168 -3.7038 --palette neon_city --seed 42 --export-image madrid_neon.png
 
-# Explore different styles of same location
-python3 main.py --coords 51.5074 -0.1278 --palette cyberpunk --seed 999 --export-image london_cyber.png
+# Explore different styles with gradients
+python3 main.py --coords 51.5074 -0.1278 --palette cyberpunk --seed 999 --gradients --export-image london_cyber.png
 
 # Organic art with pastel palette
-python3 main.py --address "Times Square, New York" --palette pastel_dream --seed 777 --export-image nyc_pastel.png
+python3 main.py --address "Times Square, New York" --palette pastel_dream --seed 777 --gradients --export-image nyc_pastel.png
 ```
 
 ### Complete Parameters
@@ -65,6 +65,7 @@ python3 main.py [LOCATION] [OPTIONS]
 # Artistic configuration  
 --palette, -p PALETTE       Color palette (see --list-palettes)
 --seed, -s INT             Seed for reproducible art
+--gradients, -g            Enable gradient styling for elements
 --radius, -r FLOAT         Radius in kilometers (default: 1.0)
 
 # Export
