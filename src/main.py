@@ -156,14 +156,18 @@ Usage examples:
                     page.wait_for_load_state("networkidle")
                     time.sleep(3)
                     
-                    # Configure viewport for generative art
-                    page.set_viewport_size({"width": args.image_size, "height": args.image_size})
+                    # Configure larger viewport to allow cropping
+                    viewport_size = int(args.image_size * 1.5)  # 50% larger viewport
+                    page.set_viewport_size({"width": viewport_size, "height": viewport_size})
                     
-                    # Take screenshot without controls
+                    # Calculate crop area to center the content and minimize white space
+                    crop_margin = int((viewport_size - args.image_size) / 2)
+                    
+                    # Take screenshot with centered crop
                     page.screenshot(
                         path=args.export_image,
                         full_page=False,
-                        clip={"x": 0, "y": 0, "width": args.image_size, "height": args.image_size}
+                        clip={"x": crop_margin, "y": crop_margin, "width": args.image_size, "height": args.image_size}
                     )
                     
                     browser.close()
