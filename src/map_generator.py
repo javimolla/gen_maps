@@ -33,15 +33,31 @@ class MapGenerator:
         
         print(f"Generative seed: {self.seed}, Style: {self.style_variation}")
     
-    def create_map(self, lat, lon, radius_km, zoom_start=15):
+    def create_map(self, lat, lon, radius_km, zoom_start=None):
         """
         Crea un mapa base centrado en las coordenadas especificadas con estilos avanzados
         """
+        # Calculate appropriate zoom based on radius
+        if zoom_start is None:
+            # Formula to calculate zoom based on radius to minimize white space
+            if radius_km <= 0.5:
+                zoom_start = 16
+            elif radius_km <= 1:
+                zoom_start = 15
+            elif radius_km <= 2:
+                zoom_start = 14
+            elif radius_km <= 5:
+                zoom_start = 13
+            else:
+                zoom_start = 12
+        
         # Crear mapa base con estilo personalizado
         m = folium.Map(
             location=[lat, lon],
             zoom_start=zoom_start,
-            tiles=None
+            tiles=None,
+            zoom_control=False,
+            attributionControl=False
         )
         
         # Base limpia sin tiles de fondo para mejor control visual
@@ -511,6 +527,15 @@ class MapGenerator:
         .gradient-road {{
             background: var(--road-gradient);
             background-size: 100% 100%;
+        }}
+        
+        /* Hide all map controls */
+        .leaflet-control-container {{
+            display: none !important;
+        }}
+        
+        .leaflet-control {{
+            display: none !important;
         }}
         </style>
         """
