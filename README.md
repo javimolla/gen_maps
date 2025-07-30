@@ -1,4 +1,4 @@
-# Generative Map Art Generator
+# Generative Map Art Generator (VIBE CODING)
 
 A generative art system that transforms real OpenStreetMap data into unique and unrepeatable artworks.
 
