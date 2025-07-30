@@ -12,9 +12,11 @@ import random
 import colorsys
 
 class MapGenerator:
-    def __init__(self, palette_name="classic", seed=None, use_gradients=False):
+    def __init__(self, palette_name="classic", seed=None, use_gradients=False, frame_color="#333", frame_width=10):
         self.palette_name = palette_name
         self.use_gradients = use_gradients
+        self.frame_color = frame_color
+        self.frame_width = frame_width
         self.osm_fetcher = OSMDataFetcher()
         # Seed for reproducible generative art
         import random
@@ -86,6 +88,10 @@ class MapGenerator:
         # Añadir CSS personalizado para efectos avanzados
         css_style = self._get_custom_css()
         m.get_root().html.add_child(folium.Element(css_style))
+        
+        # Añadir marco circular
+        frame_div = '<div class="circular-frame"></div>'
+        m.get_root().html.add_child(folium.Element(frame_div))
         
         return m
     
@@ -488,6 +494,7 @@ class MapGenerator:
         .leaflet-container {{
             background: {self._get_background_color()};
             font-family: 'Courier New', monospace;
+            clip-path: circle(50% at center);
         }}
         
         .leaflet-popup-content-wrapper {{
@@ -539,6 +546,32 @@ class MapGenerator:
         .leaflet-control {{
             display: none !important;
         }}
+        
+        /* Circular frame styling */        
+        .circular-frame {{
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            width: min(100vw, 100vh);
+            height: min(100vw, 100vh);
+            transform: translate(-50%, -50%);
+            border: {self.frame_width}px solid {self.frame_color};
+            border-radius: 50%;
+            box-sizing: border-box;
+            pointer-events: none;
+            z-index: 10000;
+            margin: 0;
+        }}
+        
+        /* Ensure circular frame is visible during screenshot */
+        @media screen {{
+            .circular-frame {{
+                display: block !important;
+                visibility: visible !important;
+                opacity: 1 !important;
+            }}
+        }}
+        
         </style>
         """
     

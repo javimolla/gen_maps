@@ -83,6 +83,20 @@ Usage examples:
         help='Image size in pixels (width and height, default: 1200)'
     )
     
+    parser.add_argument(
+        '--frame-color',
+        type=str,
+        default='#333',
+        help='Color of circular frame (default: #333)'
+    )
+    
+    parser.add_argument(
+        '--frame-width',
+        type=int,
+        default=10,
+        help='Width of circular frame in pixels (default: 10)'
+    )
+    
     # Informational options
     parser.add_argument(
         '--list-palettes',
@@ -115,7 +129,9 @@ Usage examples:
         generator = MapGenerator(
             palette_name=args.palette, 
             seed=args.seed,
-            use_gradients=args.gradients
+            use_gradients=args.gradients,
+            frame_color=args.frame_color,
+            frame_width=args.frame_width
         )
         
         # Determine location
@@ -148,6 +164,9 @@ Usage examples:
                     browser = p.chromium.launch(headless=True)
                     page = browser.new_page()
                     
+                    # Set square viewport first to ensure circular frame renders correctly
+                    page.set_viewport_size({"width": args.image_size, "height": args.image_size})
+                    
                     # Load HTML map
                     map_path = os.path.abspath(args.output)
                     page.goto(f"file://{map_path}")
@@ -156,18 +175,24 @@ Usage examples:
                     page.wait_for_load_state("networkidle")
                     time.sleep(3)
                     
-                    # Configure larger viewport to allow cropping
-                    viewport_size = int(args.image_size * 1.5)  # 50% larger viewport
-                    page.set_viewport_size({"width": viewport_size, "height": viewport_size})
+                    # Add JavaScript to ensure frame is visible
+                    page.evaluate("""
+                        const frame = document.querySelector('.circular-frame');
+                        if (frame) {
+                            frame.style.display = 'block';
+                            frame.style.visibility = 'visible';
+                            frame.style.opacity = '1';
+                            frame.style.zIndex = '10000';
+                        }
+                    """)
                     
-                    # Calculate crop area to center the content and minimize white space
-                    crop_margin = int((viewport_size - args.image_size) / 2)
+                    # Wait a bit more for styles to apply
+                    time.sleep(1)
                     
-                    # Take screenshot with centered crop
+                    # Take screenshot
                     page.screenshot(
                         path=args.export_image,
-                        full_page=False,
-                        clip={"x": crop_margin, "y": crop_margin, "width": args.image_size, "height": args.image_size}
+                        full_page=False
                     )
                     
                     browser.close()
