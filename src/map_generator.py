@@ -12,11 +12,12 @@ import random
 import colorsys
 
 class MapGenerator:
-    def __init__(self, palette_name="classic", seed=None, use_gradients=False, frame_color="#333", frame_width=10):
+    def __init__(self, palette_name="classic", seed=None, use_gradients=False, frame_color="#333", frame_width=0, color_variation=0.3):
         self.palette_name = palette_name
         self.use_gradients = use_gradients
         self.frame_color = frame_color
         self.frame_width = frame_width
+        self.color_variation_intensity = color_variation
         self.osm_fetcher = OSMDataFetcher()
         # Seed for reproducible generative art
         import random
@@ -89,9 +90,10 @@ class MapGenerator:
         css_style = self._get_custom_css()
         m.get_root().html.add_child(folium.Element(css_style))
         
-        # Add circular frame
-        frame_div = '<div class="circular-frame"></div>'
-        m.get_root().html.add_child(folium.Element(frame_div))
+        # Add circular frame only if frame_width > 0
+        if self.frame_width > 0:
+            frame_div = '<div class="circular-frame"></div>'
+            m.get_root().html.add_child(folium.Element(frame_div))
         
         return m
     
@@ -149,10 +151,10 @@ class MapGenerator:
             )
             
             if is_prominent and element_type in ['landuse', 'natural']:
-                # Efecto sutil sin múltiples capas para reducir complejidad visual
-                pass  # Eliminamos las ondas concéntricas
+                # Subtle effect without multiple layers to reduce visual complexity
+                pass  # Remove concentric waves
                 
-                # Área principal con gradiente
+                # Main area with gradient
                 style_dict = {
                     'fillColor': color,
                     'fillOpacity': 0.9,
@@ -184,7 +186,10 @@ class MapGenerator:
                 elif self.style_variation == 'geometric':
                     variation = 0.9 + (0.2 * (pos_hash > 0.5))
                 
-                varied_color = self._vary_color(color, variation)
+                # Apply spatial color variation for adjacent elements
+                spatial_hash = hash(f"{coords[0][0]:.4f}{coords[0][1]:.4f}") % 1000 / 1000.0
+                variation_factor = 1.0 + (spatial_hash - 0.5) * self.color_variation_intensity * 2.0
+                varied_color = self._vary_color(color, variation_factor)
                 
                 # Style-based opacity - fixed values independent of seed
                 base_opacity = {
@@ -233,7 +238,7 @@ class MapGenerator:
             else:
                 gradient = color
             
-            # Calcular área aproximada del edificio para determinar importancia
+            # Calculate approximate building area to determine importance
             coords = building['coordinates']
             area = self._calculate_polygon_area(coords)
             
@@ -281,7 +286,10 @@ class MapGenerator:
                 else:  # structured
                     variation = 0.9 + (0.2 * random.random())
                 
-                varied_color = self._vary_color(color, variation * cluster_factor)
+                # Apply spatial color variation for adjacent buildings
+                spatial_hash = hash(f"{coords[0][0]:.4f}{coords[0][1]:.4f}") % 1000 / 1000.0
+                variation_factor = 1.0 + (spatial_hash - 0.5) * self.color_variation_intensity * 2.0
+                varied_color = self._vary_color(color, variation_factor * cluster_factor)
                 
                 # Style-based fill opacity - fixed values independent of seed
                 base_fill_opacity = {
@@ -302,7 +310,7 @@ class MapGenerator:
                 
                 folium.Polygon(
                     locations=coords,
-                    popup=f"Edificio: {building_type}",
+                    popup=f"Building: {building_type}",
                     color=varied_color,
                     fill=True,
                     fillColor=varied_color,
@@ -315,7 +323,7 @@ class MapGenerator:
         """
         Add roads to map with variable thickness and visual effects
         """
-        # Anchos simplificados para mejor jerarquía visual
+        # Simplified widths for better visual hierarchy
         width_map = {
             'motorway': 4,
             'motorway_link': 3,
@@ -340,7 +348,7 @@ class MapGenerator:
             'cycleway': 1.2
         }
         
-        # Definir opacidades según importancia
+        # Define opacities according to importance
         opacity_map = {
             'motorway': 1.0,
             'trunk': 0.95,
@@ -476,7 +484,7 @@ class MapGenerator:
         """
         Generate a complete map with OSM data and custom colors
         """
-        # Obtener coordenadas si se proporciona una dirección
+        # Get coordinates if an address is provided
         if isinstance(location, str):
             lat, lon = self.osm_fetcher.get_coordinates_from_address(location)
         else:
@@ -497,17 +505,15 @@ class MapGenerator:
         print("Adding elements to map...")
         self.add_elements_to_map(map_obj, osm_data)
         
-        # No center marker
-        
         # Save map
         map_obj.save(output_file)
-        print(f"Mapa guardado como: {output_file}")
+        print(f"Map saved as: {output_file}")
         
         return map_obj
     
     def _get_custom_css(self):
         """
-        Genera CSS personalizado para efectos visuales avanzados
+        Generate custom CSS for advanced visual effects
         """
         neon_glow = ""
         if self.palette_name in ['neon_city', 'cyberpunk']:
@@ -605,7 +611,7 @@ class MapGenerator:
     
     def _get_background_color(self):
         """
-        Obtiene el color de fondo según la paleta
+        Get background color according to palette
         """
         backgrounds = {
             'neon_city': '#0a0a0a',
@@ -621,7 +627,7 @@ class MapGenerator:
     
     def _create_custom_icon(self, icon_type, color, size=20):
         """
-        Crea iconos personalizados SVG para diferentes elementos
+        Create custom SVG icons for different elements
         """
         icons = {
             'hospital': f'<svg width="{size}" height="{size}" viewBox="0 0 24 24" fill="{color}"><path d="M19,3H5C3.9,3 3,3.9 3,5V19C3,20.1 3.9,21 5,21H19C20.1,21 21,20.1 21,19V5C21,3.9 20.1,3 19,3M18,14H13V19H11V14H6V12H11V7H13V12H18V14Z"/></svg>',
@@ -639,7 +645,7 @@ class MapGenerator:
     
     def _calculate_polygon_area(self, coordinates):
         """
-        Calcula el área aproximada de un polígono usando la fórmula del área del polígono
+        Calculate approximate polygon area using polygon area formula
         """
         if len(coordinates) < 3:
             return 0
@@ -654,27 +660,27 @@ class MapGenerator:
     
     def _offset_coordinates(self, coordinates, offset_lat, offset_lon):
         """
-        Desplaza las coordenadas para crear efecto de sombra
+        Offset coordinates to create shadow effect
         """
         return [[lat + offset_lat, lon + offset_lon] for lat, lon in coordinates]
     
     def _darken_color(self, color):
         """
-        Oscurece un color para crear efectos de profundidad
+        Darken a color to create depth effects
         """
         if color.startswith('#'):
-            # Convertir hex a RGB, oscurecer, y devolver
+            # Convert hex to RGB, darken, and return
             hex_color = color[1:]
             if len(hex_color) == 6:
                 r = max(0, int(hex_color[0:2], 16) - 40)
                 g = max(0, int(hex_color[2:4], 16) - 40)
                 b = max(0, int(hex_color[4:6], 16) - 40)
                 return f'#{r:02x}{g:02x}{b:02x}'
-        return color  # Fallback al color original
+        return color  # Fallback to original color
     
     def _vary_color(self, color, factor):
         """
-        Generative color variation with multiple methods
+        Enhanced color variation with stronger effects
         """
         if not color.startswith('#'):
             return color
@@ -685,25 +691,21 @@ class MapGenerator:
             g = int(hex_color[2:4], 16) 
             b = int(hex_color[4:6], 16)
             
-            if self.style_variation == 'organic':
-                # Organic: shift hue slightly
-                import colorsys
-                h, s, v = colorsys.rgb_to_hsv(r/255, g/255, b/255)
-                h = (h + random.uniform(-0.1, 0.1)) % 1.0
-                r, g, b = colorsys.hsv_to_rgb(h, s, v)
-                r, g, b = int(r*255), int(g*255), int(b*255)
-            elif self.style_variation == 'flow':
-                # Flow: adjust saturation
-                import colorsys
-                h, s, v = colorsys.rgb_to_hsv(r/255, g/255, b/255)
-                s = min(1.0, max(0.0, s * factor))
-                r, g, b = colorsys.hsv_to_rgb(h, s, v)
-                r, g, b = int(r*255), int(g*255), int(b*255)
-            else:
-                # Geometric/structured: brightness only
-                r = min(255, max(0, int(r * factor)))
-                g = min(255, max(0, int(g * factor)))
-                b = min(255, max(0, int(b * factor)))
+            import colorsys
+            h, s, v = colorsys.rgb_to_hsv(r/255, g/255, b/255)
+            
+            # Apply stronger variations based on factor
+            hue_shift = (factor - 1.0) * 0.2  # More hue variation
+            sat_factor = 0.5 + factor * 0.5    # Saturation variation
+            val_factor = 0.3 + factor * 0.7    # Value variation
+            
+            # Apply variations
+            h = (h + hue_shift) % 1.0
+            s = min(1.0, max(0.0, s * sat_factor))
+            v = min(1.0, max(0.2, v * val_factor))  # Keep minimum brightness
+            
+            r, g, b = colorsys.hsv_to_rgb(h, s, v)
+            r, g, b = int(r*255), int(g*255), int(b*255)
             
             return f'#{r:02x}{g:02x}{b:02x}'
         except:

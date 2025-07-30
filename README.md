@@ -12,6 +12,7 @@ A generative art system that transforms real OpenStreetMap data into unique and 
 - **🖼️ Direct Export**: Interactive HTML or high-quality PNG
 - **🔄 Infinite Variation**: Same location generates completely different art
 - **⭕ Circular Frame**: Configurable circular frame with custom color and width
+- **🎨 Color Variation**: Adjustable color diversity for adjacent elements (0.0-1.0)
 
 ## 🎯 Generative Art
 
@@ -50,8 +51,8 @@ python3 main.py --coords 39.4699 -0.3763 --palette neon_city --seed 42 --export-
 # Explore different styles with gradients
 python3 main.py --coords 51.5074 -0.1278 --palette cyberpunk --seed 999 --gradients --export-image london_cyber.png
 
-# Organic art with pastel palette and custom frame
-python3 main.py --address "Times Square, New York" --palette pastel_dream --seed 777 --gradients --frame-color "#ff6b6b" --frame-width 20 --export-image nyc_pastel.png
+# Organic art with pastel palette, custom frame and high color variation
+python3 main.py --address "Times Square, New York" --palette pastel_dream --seed 777 --gradients --frame-color "#ff6b6b" --frame-width 20 --color-variation 0.8 --export-image nyc_pastel.png
 ```
 
 ### Complete Parameters
@@ -70,6 +71,7 @@ python3 main.py [LOCATION] [OPTIONS]
 --radius, -r FLOAT         Radius in kilometers (default: 1.0)
 --frame-color COLOR        Color of circular frame (default: #333)
 --frame-width INT          Width of circular frame in pixels (default: 10)
+--color-variation FLOAT    Color diversity for adjacent elements (0.0-1.0, default: 0.3)
 
 # Export
 --output, -o FILE          HTML file (default: map.html)
@@ -142,6 +144,7 @@ gen_maps/
 The system implements multiple generative art techniques:
 
 - **Positional hashing**: Colors vary by geographic coordinates
+- **Spatial color variation**: Configurable diversity for adjacent elements
 - **Emergent clustering**: Similar elements group naturally  
 - **Stochastic variation**: Seed-controlled randomization
 - **Color transformations**: HSV, dynamic saturation, complementaries

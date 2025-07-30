@@ -93,8 +93,15 @@ Usage examples:
     parser.add_argument(
         '--frame-width',
         type=int,
-        default=10,
-        help='Width of circular frame in pixels (default: 10)'
+        default=0,
+        help='Width of circular frame in pixels (default: 0, no frame)'
+    )
+    
+    parser.add_argument(
+        '--color-variation',
+        type=float,
+        default=0.3,
+        help='Color variation intensity for adjacent elements (0.0-1.0, default: 0.3)'
     )
     
     # Informational options
@@ -131,7 +138,8 @@ Usage examples:
             seed=args.seed,
             use_gradients=args.gradients,
             frame_color=args.frame_color,
-            frame_width=args.frame_width
+            frame_width=args.frame_width,
+            color_variation=args.color_variation
         )
         
         # Determine location

@@ -9,11 +9,13 @@ import sys
 import time
 
 # Configuration
-LOCATION = "Valencia, Spain"
+LOCATION = "Policía Local, 91, Calle Emilio Baró, Sant Llorenç, Rascanya, Valencia, Comarca de Valencia, Valencia, Comunidad Valenciana, 46020, España"
 RADIUS = 0.8  # Smaller radius for more detail
 FRAME_COLOR = "#DEBF78"  # Light golden color
-FRAME_WIDTH = 8  # Smaller frame width
+FRAME_WIDTH = 0  # Smaller frame width
 IMAGE_SIZE = 1000  # Image size
+SEED = 42  # Fixed seed for reproducibility
+COLOR_VARIATION = 0.2  # Color variation intensity (0.0-1.0)
 
 # Available palettes
 PALETTES = [
@@ -43,7 +45,7 @@ def main():
     """Generate maps for all palettes"""
     print(f"🎨 Testing all palettes with location: {LOCATION}")
     print(f"📐 Radius: {RADIUS}km, Frame: {FRAME_COLOR}, Width: {FRAME_WIDTH}px")
-    print(f"📏 Image size: {IMAGE_SIZE}px")
+    print(f"📏 Image size: {IMAGE_SIZE}px, Color variation: {COLOR_VARIATION}")
     print("=" * 60)
     
     # Create output directory
@@ -65,8 +67,10 @@ def main():
             "--address", LOCATION,
             "--radius", str(RADIUS),
             "--palette", palette,
+            "--seed", str(SEED),
             "--frame-color", FRAME_COLOR,
             "--frame-width", str(FRAME_WIDTH),
+            "--color-variation", str(COLOR_VARIATION),
             "--image-size", str(IMAGE_SIZE),
             "--export-image", output_file,
             "--output", f"{output_dir}/{palette}_map.html"
@@ -102,6 +106,7 @@ def main():
     
     print(f"\n🎨 Frame color used: {FRAME_COLOR}")
     print(f"📐 Frame width: {FRAME_WIDTH}px")
+    print(f"🎨 Color variation: {COLOR_VARIATION}")
     print(f"🗺️  Location: {LOCATION} (radius: {RADIUS}km)")
 
 if __name__ == "__main__":

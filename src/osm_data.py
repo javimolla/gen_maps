@@ -30,8 +30,8 @@ class OSMDataFetcher:
         """
         Calculate bounding box based on center coordinates and radius
         """
-        # Aproximación: 1 grado de latitud ≈ 111 km
-        # 1 grado de longitud ≈ 111 km * cos(latitud)
+        # Approximation: 1 degree of latitude ≈ 111 km
+        # 1 degree of longitude ≈ 111 km * cos(latitude)
         
         lat_offset = radius_km / 111.0
         lon_offset = radius_km / (111.0 * math.cos(math.radians(lat)))
