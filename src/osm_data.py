@@ -15,20 +15,20 @@ class OSMDataFetcher:
     
     def get_coordinates_from_address(self, address):
         """
-        Convierte una dirección en coordenadas GPS
+        Convert an address to GPS coordinates
         """
         try:
             location = self.geolocator.geocode(address)
             if location:
                 return location.latitude, location.longitude
             else:
-                raise ValueError(f"No se pudo encontrar la dirección: {address}")
+                raise ValueError(f"Could not find address: {address}")
         except Exception as e:
-            raise ValueError(f"Error al buscar la dirección: {str(e)}")
+            raise ValueError(f"Error searching for address: {str(e)}")
     
     def calculate_bbox(self, lat, lon, radius_km):
         """
-        Calcula el bounding box basado en coordenadas centrales y radio
+        Calculate bounding box based on center coordinates and radius
         """
         # Aproximación: 1 grado de latitud ≈ 111 km
         # 1 grado de longitud ≈ 111 km * cos(latitud)
@@ -45,11 +45,11 @@ class OSMDataFetcher:
     
     def fetch_osm_data(self, lat, lon, radius_km):
         """
-        Obtiene datos de OpenStreetMap para la ubicación y radio especificados
+        Fetch OpenStreetMap data for specified location and radius
         """
         south, west, north, east = self.calculate_bbox(lat, lon, radius_km)
         
-        # Query para obtener diferentes tipos de elementos
+        # Query to fetch different types of elements
         query = f"""
         [out:json][timeout:60];
         (
@@ -69,11 +69,11 @@ class OSMDataFetcher:
             result = self.api.query(query)
             return self.process_osm_result(result)
         except Exception as e:
-            raise Exception(f"Error al obtener datos de OSM: {str(e)}")
+            raise Exception(f"Error fetching OSM data: {str(e)}")
     
     def process_osm_result(self, result):
         """
-        Procesa el resultado de la consulta OSM y lo organiza por tipos
+        Process OSM query result and organize by types
         """
         processed_data = {
             'highways': [],
@@ -83,7 +83,7 @@ class OSMDataFetcher:
             'railways': []
         }
         
-        # Procesar ways
+        # Process ways
         for way in result.ways:
             coords = [(float(node.lat), float(node.lon)) for node in way.nodes]
             
@@ -108,10 +108,10 @@ class OSMDataFetcher:
                 element_data['subtype'] = way.tags['railway']
                 processed_data['railways'].append(element_data)
         
-        # Procesar relations (para áreas grandes)
+        # Process relations (for large areas)
         for relation in result.relations:
             if relation.members:
-                # Simplificado: tomar solo el primer member que sea un way
+                # Simplified: take only the first member that is a way
                 for member in relation.members:
                     if member.role == "outer":
                         try:

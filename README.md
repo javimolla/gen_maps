@@ -11,6 +11,7 @@ A generative art system that transforms real OpenStreetMap data into unique and 
 - **📍 Flexible Search**: By address or GPS coordinates
 - **🖼️ Direct Export**: Interactive HTML or high-quality PNG
 - **🔄 Infinite Variation**: Same location generates completely different art
+- **⭕ Circular Frame**: Configurable circular frame with custom color and width
 
 ## 🎯 Generative Art
 
@@ -44,13 +45,13 @@ playwright install chromium
 
 ```bash
 # Art with specific seed for reproducibility
-python3 main.py --coords 40.4168 -3.7038 --palette neon_city --seed 42 --export-image madrid_neon.png
+python3 main.py --coords 39.4699 -0.3763 --palette neon_city --seed 42 --export-image valencia_neon.png
 
 # Explore different styles with gradients
 python3 main.py --coords 51.5074 -0.1278 --palette cyberpunk --seed 999 --gradients --export-image london_cyber.png
 
-# Organic art with pastel palette
-python3 main.py --address "Times Square, New York" --palette pastel_dream --seed 777 --gradients --export-image nyc_pastel.png
+# Organic art with pastel palette and custom frame
+python3 main.py --address "Times Square, New York" --palette pastel_dream --seed 777 --gradients --frame-color "#ff6b6b" --frame-width 20 --export-image nyc_pastel.png
 ```
 
 ### Complete Parameters
@@ -67,6 +68,8 @@ python3 main.py [LOCATION] [OPTIONS]
 --seed, -s INT             Seed for reproducible art
 --gradients, -g            Enable gradient styling for elements
 --radius, -r FLOAT         Radius in kilometers (default: 1.0)
+--frame-color COLOR        Color of circular frame (default: #333)
+--frame-width INT          Width of circular frame in pixels (default: 10)
 
 # Export
 --output, -o FILE          HTML file (default: map.html)
@@ -93,10 +96,10 @@ python3 main.py [LOCATION] [OPTIONS]
 ## 🎭 Generative Art Examples
 
 ```bash
-# Madrid art collection with different seeds
-python3 main.py --coords 40.4168 -3.7038 --palette sunset --seed 123 --export-image madrid_1.png
-python3 main.py --coords 40.4168 -3.7038 --palette sunset --seed 456 --export-image madrid_2.png
-python3 main.py --coords 40.4168 -3.7038 --palette sunset --seed 789 --export-image madrid_3.png
+# Valencia art collection with different seeds
+python3 main.py --coords 39.4699 -0.3763 --palette sunset --seed 123 --export-image valencia_1.png
+python3 main.py --coords 39.4699 -0.3763 --palette sunset --seed 456 --export-image valencia_2.png
+python3 main.py --coords 39.4699 -0.3763 --palette sunset --seed 789 --export-image valencia_3.png
 
 # Same place, different palettes
 python3 main.py --coords 48.8566 2.3522 --palette neon_city --seed 2024 --export-image paris_neon.png

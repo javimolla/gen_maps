@@ -37,7 +37,7 @@ class MapGenerator:
     
     def create_map(self, lat, lon, radius_km, zoom_start=None):
         """
-        Crea un mapa base centrado en las coordenadas especificadas con estilos avanzados
+        Create a base map centered on specified coordinates with advanced styling
         """
         # Calculate appropriate zoom based on radius
         if zoom_start is None:
@@ -55,7 +55,7 @@ class MapGenerator:
             else:
                 zoom_start = 14
         
-        # Crear mapa base con estilo personalizado
+        # Create base map with custom styling
         m = folium.Map(
             location=[lat, lon],
             zoom_start=zoom_start,
@@ -85,11 +85,11 @@ class MapGenerator:
                 opacity=0.05
             ).add_to(m)
         
-        # Añadir CSS personalizado para efectos avanzados
+        # Add custom CSS for advanced effects
         css_style = self._get_custom_css()
         m.get_root().html.add_child(folium.Element(css_style))
         
-        # Añadir marco circular
+        # Add circular frame
         frame_div = '<div class="circular-frame"></div>'
         m.get_root().html.add_child(folium.Element(frame_div))
         
@@ -97,22 +97,22 @@ class MapGenerator:
     
     def add_elements_to_map(self, map_obj, osm_data):
         """
-        Añade elementos de OSM al mapa con colores personalizados
+        Add OSM elements to map with custom colors
         """
-        # Añadir landuse y natural primero (fondo)
+        # Add landuse and natural first (background)
         self._add_polygons(map_obj, osm_data['landuse'], 'landuse')
         self._add_polygons(map_obj, osm_data['natural'], 'natural')
         
-        # Añadir edificios
+        # Add buildings
         self._add_buildings(map_obj, osm_data['buildings'])
         
-        # Añadir vías (encima)
-        self._add_highways(map_obj, osm_data['highways'])
-        self._add_railways(map_obj, osm_data['railways'])
+        # Skip linear elements - only polygonal elements
+        # self._add_highways(map_obj, osm_data['highways'])
+        # self._add_railways(map_obj, osm_data['railways'])
     
     def _add_polygons(self, map_obj, elements, element_type):
         """
-        Añade polígonos (áreas) al mapa con efectos de profundidad
+        Add polygons (areas) to map with depth effects
         """
         import random
         
@@ -155,9 +155,9 @@ class MapGenerator:
                 # Área principal con gradiente
                 style_dict = {
                     'fillColor': color,
-                    'fillOpacity': 0.6,
+                    'fillOpacity': 0.9,
                     'color': color,
-                    'weight': 1,
+                    'weight': 0.5,
                     'opacity': 0.8
                 }
                 
@@ -167,7 +167,12 @@ class MapGenerator:
                 folium.Polygon(
                     locations=coords,
                     popup=f"{element_type.title()}: {subtype.replace('_', ' ').title()}",
-                    style_function=lambda x, style=style_dict: style
+                    color=color,
+                    fill=True,
+                    fillColor=color,
+                    fillOpacity=1.0,
+                    weight=0,
+                    opacity=0
                 ).add_to(map_obj)
             else:
                 # Generative color variation based on position and style
@@ -181,13 +186,22 @@ class MapGenerator:
                 
                 varied_color = self._vary_color(color, variation)
                 
-                # Style-based opacity and weight
-                opacity = {
-                    'organic': 0.5 + random.uniform(0, 0.3),
+                # Style-based opacity - fixed values independent of seed
+                base_opacity = {
+                    'organic': 0.75,
                     'geometric': 0.8,
-                    'flow': 0.4 + (pos_hash * 0.4),
+                    'flow': 0.75,
                     'structured': 0.7
                 }[self.style_variation]
+                
+                # Palette-specific opacity boost for problematic palettes
+                if self.palette_name in ['pastel_dream', 'sunset', 'forest', 'ocean', 'neon_city', 'cyberpunk']:
+                    fill_opacity = min(0.9, base_opacity + 0.4)
+                else:
+                    fill_opacity = base_opacity
+                
+                # Force solid fill for all polygons
+                final_fill_opacity = 0.9
                 
                 folium.Polygon(
                     locations=coords,
@@ -195,14 +209,14 @@ class MapGenerator:
                     color=varied_color,
                     fill=True,
                     fillColor=varied_color,
-                    fillOpacity=opacity,
-                    weight=1,
-                    opacity=opacity
+                    fillOpacity=1.0,
+                    weight=0,
+                    opacity=0
                 ).add_to(map_obj)
     
     def _add_buildings(self, map_obj, buildings):
         """
-        Añade edificios al mapa con efectos de extrusión simulada
+        Add buildings to map with simulated extrusion effects
         """
         import random
         
@@ -237,16 +251,21 @@ class MapGenerator:
                 # Edificio destacado con gradiente
                 style_dict = {
                     'fillColor': gradient,
-                    'fillOpacity': 0.8,
-                    'color': self._darken_color(color),
-                    'weight': 1.5,
-                    'opacity': 0.9
+                    'fillOpacity': 0.9,
+                    'color': color,
+                    'weight': 0.5,
+                    'opacity': 0.8
                 }
                 
                 folium.Polygon(
                     locations=coords,
                     popup=f"{building_type.replace('_', ' ').title()}",
-                    style_function=lambda x, style=style_dict: style
+                    color=color,
+                    fill=True,
+                    fillColor=color,
+                    fillOpacity=1.0,
+                    weight=0,
+                    opacity=0
                 ).add_to(map_obj)
             else:
                 # Generative building clustering and variation
@@ -264,13 +283,22 @@ class MapGenerator:
                 
                 varied_color = self._vary_color(color, variation * cluster_factor)
                 
-                # Style-based fill opacity
-                fill_opacity = {
-                    'organic': 0.4 + (pos_hash * 0.4),
+                # Style-based fill opacity - fixed values independent of seed
+                base_fill_opacity = {
+                    'organic': 0.75,
                     'geometric': 0.8,
-                    'flow': 0.3 + (0.5 * pos_hash),
+                    'flow': 0.75,
                     'structured': 0.7
                 }[self.style_variation]
+                
+                # Boost opacity for problematic palettes
+                if self.palette_name in ['pastel_dream', 'sunset', 'forest', 'ocean', 'neon_city', 'cyberpunk']:
+                    fill_opacity = min(0.9, base_fill_opacity + 0.4)
+                else:
+                    fill_opacity = base_fill_opacity
+                
+                # Force solid fill for all buildings
+                final_fill_opacity = 0.9
                 
                 folium.Polygon(
                     locations=coords,
@@ -278,14 +306,14 @@ class MapGenerator:
                     color=varied_color,
                     fill=True,
                     fillColor=varied_color,
-                    fillOpacity=fill_opacity,
-                    weight=1,
-                    opacity=0.8
+                    fillOpacity=1.0,
+                    weight=0,
+                    opacity=0
                 ).add_to(map_obj)
     
     def _add_highways(self, map_obj, highways):
         """
-        Añade carreteras al mapa con grosor variable y efectos visuales
+        Add roads to map with variable thickness and visual effects
         """
         # Anchos simplificados para mejor jerarquía visual
         width_map = {
@@ -418,7 +446,7 @@ class MapGenerator:
     
     def _add_railways(self, map_obj, railways):
         """
-        Añade ferrocarriles al mapa con efectos visuales mejorados
+        Add railways to map with enhanced visual effects
         """
         railway_styles = {
             'rail': {'weight': 3, 'dash': '8, 4', 'opacity': 0.9},
@@ -446,7 +474,7 @@ class MapGenerator:
     
     def generate_custom_map(self, location, radius_km, output_file="map.html"):
         """
-        Genera un mapa completo con datos de OSM y colores personalizados
+        Generate a complete map with OSM data and custom colors
         """
         # Obtener coordenadas si se proporciona una dirección
         if isinstance(location, str):
@@ -454,24 +482,24 @@ class MapGenerator:
         else:
             lat, lon = location
         
-        print(f"Generando mapa generativo para coordenadas: {lat}, {lon}")
-        print(f"Radio: {radius_km} km, Paleta: {self.palette_name}")
-        print(f"Seed: {self.seed}, Estilo: {self.style_variation}")
+        print(f"Generating map for coordinates: {lat}, {lon}")
+        print(f"Radius: {radius_km} km, Palette: {self.palette_name}")
+        print(f"Seed: {self.seed}, Style: {self.style_variation}")
         
         # Obtener datos de OSM
-        print("Obteniendo datos de OpenStreetMap...")
+        print("Fetching OpenStreetMap data...")
         osm_data = self.osm_fetcher.fetch_osm_data(lat, lon, radius_km)
         
-        # Crear mapa base
+        # Create base map
         map_obj = self.create_map(lat, lon, radius_km)
         
-        # Añadir elementos al mapa
-        print("Añadiendo elementos al mapa...")
+        # Add elements to map
+        print("Adding elements to map...")
         self.add_elements_to_map(map_obj, osm_data)
         
         # No center marker
         
-        # Guardar mapa
+        # Save map
         map_obj.save(output_file)
         print(f"Mapa guardado como: {output_file}")
         
