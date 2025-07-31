@@ -865,6 +865,7 @@
 
         // Color palettes (will be loaded from API)
         let palettes = {};
+        let paletteDisplayNames = {};
         
         // Preview frame variables
         let previewFrameElement = null;
@@ -916,15 +917,20 @@
                 
                 if (response.ok) {
                     palettes = {};
+                    paletteDisplayNames = {}; // Store display names separately
                     Object.keys(palettesData).forEach(key => {
                         palettes[key] = palettesData[key].colors;
+                        paletteDisplayNames[key] = palettesData[key].display_name || key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
                     });
+                    console.log('Loaded palettes:', palettes); // Debug
+                    console.log('Display names:', paletteDisplayNames); // Debug
                     // Palettes loaded for wizard
                 } else {
                     showNotification('Error loading palettes: ' + palettesData.error, 'error');
                 }
             } catch (error) {
                 showNotification('Error connecting to server', 'error');
+                console.error('Palette loading error:', error);
                 // Fallback to default palettes
                 palettes = {
                     classic: ['#e892a2', '#f9b29c', '#fcd6a4', '#c8facc', '#aad3df'],
@@ -936,6 +942,7 @@
                     forest: ['#365314', '#65a30d', '#a3e635', '#16a34a', '#0891b2'],
                     dark_mode: ['#bb86fc', '#03dac6', '#cf6679', '#f48fb1', '#80cbc4']
                 };
+                paletteDisplayNames = {};
                 initPaletteGrid();
             }
         }
@@ -1893,17 +1900,23 @@
                 const option = document.createElement('div');
                 option.className = `palette-option ${paletteName === wizardData.palette ? 'selected' : ''}`;
                 option.dataset.palette = paletteName;
+                
+                // Use the colors directly from the API response structure  
+                const colors = palette || [];
+                // Use stored display name or format the palette name
+                let displayName = paletteDisplayNames[paletteName] || paletteName.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                
                 option.innerHTML = `
                     <div class="palette-colors">
-                        ${(palette.colors || []).slice(0, 5).map(color => `<div class="color-swatch" style="background: ${color}"></div>`).join('')}
+                        ${colors.slice(0, 5).map(color => `<div class="color-swatch" style="background: ${color}"></div>`).join('')}
                     </div>
-                    <div class="palette-name">${palette.display_name || paletteName.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</div>
+                    <div class="palette-name">${displayName}</div>
                 `;
                 
                 option.addEventListener('click', () => {
                     document.querySelectorAll('.palette-option').forEach(p => p.classList.remove('selected'));
                     option.classList.add('selected');
-                    updatePalettePreview(paletteName, palette);
+                    updatePalettePreview(paletteName, { colors: palette });
                 });
                 
                 grid.appendChild(option);
@@ -1912,10 +1925,10 @@
             // Set initial preview to selected palette
             const selectedPalette = wizardData.palette;
             if (palettes[selectedPalette]) {
-                updatePalettePreview(selectedPalette, palettes[selectedPalette]);
+                updatePalettePreview(selectedPalette, { colors: palettes[selectedPalette] });
             } else if (Object.keys(palettes).length > 0) {
                 const firstPalette = Object.keys(palettes)[0];
-                updatePalettePreview(firstPalette, palettes[firstPalette]);
+                updatePalettePreview(firstPalette, { colors: palettes[firstPalette] });
             }
         }
 
@@ -1951,8 +1964,8 @@
                 `<div style="width: 30px; height: 30px; background: ${color}; border-radius: 4px; border: 1px solid rgba(0,0,0,0.1);"></div>`
             ).join('');
             
-            // Update name - use display_name from API or format the palette name
-            const displayName = palette.display_name || paletteName.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+            // Update name - use stored display name or format the palette name
+            const displayName = paletteDisplayNames[paletteName] || palette.display_name || paletteName.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
             previewName.textContent = displayName;
         }
 
@@ -1960,7 +1973,7 @@
             const summary = document.getElementById('wizardSummary');
             if (!summary) return;
             
-            const paletteName = palettes[wizardData.palette]?.display_name || wizardData.palette;
+            const paletteName = paletteDisplayNames[wizardData.palette] || wizardData.palette.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
             
             summary.innerHTML = `
                 <strong>Palette:</strong> ${paletteName}<br>
@@ -2187,13 +2200,37 @@
 
                 const result = await response.json();
                 if (result.success) {
-                    showNotification('Palette imported successfully', 'success');
-                    // You could add the imported palette to the grid here
+                    // Reload palettes to include the imported one
+                    await loadPalettes();
+                    
+                    // Update the wizard palette grid if currently in step 1
+                    if (currentStep === 1) {
+                        loadPaletteOptionsInWizard();
+                        
+                        // Auto-select the imported palette
+                        setTimeout(() => {
+                            const importedOption = document.querySelector(`[data-palette="${result.palette_name}"]`);
+                            if (importedOption) {
+                                document.querySelectorAll('.palette-option').forEach(p => p.classList.remove('selected'));
+                                importedOption.classList.add('selected');
+                                // Update the stored display name
+                                paletteDisplayNames[result.palette_name] = result.display_name;
+                                updatePalettePreview(result.palette_name, {
+                                    colors: result.colors,
+                                    display_name: result.display_name
+                                });
+                                wizardData.palette = result.palette_name;
+                            }
+                        }, 100);
+                    }
+                    
+                    showNotification(`Palette "${result.display_name}" imported and selected`, 'success');
                 } else {
                     showNotification('Error: ' + result.error, 'error');
                 }
             } catch (error) {
                 showNotification('Error importing palette', 'error');
+                console.error('Import error:', error);
             }
         }
 
