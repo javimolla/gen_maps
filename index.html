@@ -1,0 +1,2236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generative Map Art - VIBE CODING</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8fafc;
+            overflow: hidden;
+        }
+
+        #map {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            z-index: 1;
+        }
+
+        /* Left Control Panel */
+        .left-controls {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            max-width: 320px;
+        }
+
+        /* Right Control Panel */
+        .right-controls {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            align-items: flex-end;
+        }
+
+        /* Zoom Controls */
+        .zoom-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .zoom-btn {
+            width: 44px;
+            height: 44px;
+            background: white;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 18px;
+            font-weight: 600;
+            color: #1f2937;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            user-select: none;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .zoom-btn:hover {
+            background: #f9fafb;
+            border-color: #9ca3af;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .zoom-btn:active {
+            transform: translateY(0);
+        }
+
+        /* Live Preview Frame */
+        .preview-frame {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            border: 10px solid #333;
+            pointer-events: none;
+            z-index: 500;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.3);
+            display: none;
+        }
+
+        .preview-frame.visible {
+            display: block;
+        }
+
+        .control-group {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .search-active .search-results {
+            display: block;
+        }
+        
+        .search-results {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            z-index: 2000;
+        }
+
+
+        /* Search Box */
+        .search-container {
+            position: relative;
+            min-width: 320px;
+            flex: 1;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 12px 16px 12px 48px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 14px;
+            background: white;
+            transition: all 0.2s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6b7280;
+            font-size: 18px;
+        }
+
+        .search-results {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            margin-top: 8px;
+            max-height: 300px;
+            overflow-y: auto;
+            display: none;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+            z-index: 2000; /* Higher than control buttons */
+        }
+
+        .search-result-item {
+            padding: 12px 16px;
+            cursor: pointer;
+            border-bottom: 1px solid #e2e8f0;
+            transition: background-color 0.2s ease;
+        }
+
+        .search-result-item:hover {
+            background: #f8fafc;
+        }
+
+        .search-result-item:last-child {
+            border-bottom: none;
+        }
+
+        .search-result-name {
+            font-weight: 500;
+            color: #1e293b;
+        }
+
+        .search-result-address {
+            font-size: 12px;
+            color: #64748b;
+            margin-top: 2px;
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            z-index: 2000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.2s ease;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 16px;
+            padding: 32px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+            animation: slideUp 0.3s ease;
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: #64748b;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .modal-close:hover {
+            background: #f1f5f9;
+            color: #334155;
+        }
+
+        /* Palette Grid */
+        .palette-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 16px;
+            margin: 20px 0;
+        }
+
+        .palette-card {
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+        }
+
+        .palette-card:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+        }
+
+        .palette-card.selected {
+            border-color: #667eea;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+        }
+
+        .palette-preview {
+            display: flex;
+            height: 30px;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 12px;
+        }
+
+        .palette-color {
+            flex: 1;
+        }
+
+        .palette-name {
+            font-size: 13px;
+            font-weight: 500;
+            color: #334155;
+        }
+
+        /* Form Groups */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: #374151;
+            margin-bottom: 8px;
+        }
+
+        .form-input, .form-select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.2s ease;
+        }
+
+        .form-input:focus, .form-select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        /* Import/Export section */
+        .import-export-section {
+            margin: 24px 0;
+            padding: 20px;
+            background: #f8fafc;
+            border-radius: 12px;
+        }
+
+        .import-export-title {
+            font-size: 16px;
+            font-weight: 500;
+            color: #1e293b;
+            margin-bottom: 12px;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            display: inline-block;
+        }
+
+        .file-input {
+            position: absolute;
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .file-input-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 16px;
+            background: white;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s ease;
+        }
+
+        .file-input-label:hover {
+            border-color: #667eea;
+            background: #f8fafc;
+        }
+
+        /* Button Groups */
+        .button-group {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            margin-top: 24px;
+            padding-top: 20px;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-secondary {
+            background: #f1f5f9;
+            color: #475569;
+        }
+
+        .btn-secondary:hover {
+            background: #e2e8f0;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+            transform: translateY(-1px);
+        }
+
+        /* Loading state */
+        .loading {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .spinner {
+            width: 16px;
+            height: 16px;
+            border: 2px solid #e2e8f0;
+            border-top: 2px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from { 
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to { 
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes slideInUp {
+            from { 
+                opacity: 0;
+                transform: translateX(-50%) translateY(20px);
+            }
+            to { 
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+
+        @keyframes slideOutDown {
+            from { 
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+            to { 
+                opacity: 0;
+                transform: translateX(-50%) translateY(20px);
+            }
+        }
+
+        /* Wizard Styles */
+        .wizard-modal {
+            min-height: 500px;
+        }
+
+        .wizard-progress {
+            margin: 20px 0 30px 0;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: #e5e7eb;
+            border-radius: 2px;
+            overflow: hidden;
+            margin-bottom: 16px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #3b82f6, #1d4ed8);
+            border-radius: 2px;
+            transition: width 0.3s ease;
+            width: 20%;
+        }
+
+        .progress-steps {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .step {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #e5e7eb;
+            color: #6b7280;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .step.active {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .step.completed {
+            background: #10b981;
+            color: white;
+        }
+
+        .wizard-content {
+            min-height: 300px;
+            margin: 20px 0;
+        }
+
+        .wizard-navigation {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .step-container {
+            display: none;
+        }
+
+        .step-container.active {
+            display: block;
+            animation: slideUp 0.3s ease;
+        }
+
+        .step-header {
+            margin-bottom: 20px;
+        }
+
+        .step-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 8px;
+        }
+
+        .step-description {
+            color: #6b7280;
+            font-size: 14px;
+        }
+
+        .step-example {
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 16px;
+            margin: 16px 0;
+            text-align: center;
+        }
+
+        .step-example img {
+            max-width: 200px;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 6px;
+            background: #f3f4f6;
+        }
+
+        /* Palette selection styles */
+        .palette-option {
+            border: 2px solid transparent;
+            border-radius: 8px;
+            padding: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: white;
+        }
+
+        .palette-option:hover {
+            border-color: #3b82f6;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .palette-option.selected {
+            border-color: #3b82f6;
+            background: #eff6ff;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .palette-colors {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 8px;
+            justify-content: center;
+        }
+
+        .color-swatch {
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+            border: 1px solid rgba(0,0,0,0.1);
+        }
+
+        .palette-name {
+            text-align: center;
+            font-size: 12px;
+            font-weight: 500;
+            color: #374151;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .left-controls {
+                top: 10px;
+                left: 10px;
+                max-width: calc(100% - 140px); /* Leave space for right controls */
+            }
+
+            .left-controls .control-group {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 8px;
+            }
+
+            .right-controls {
+                top: 10px;
+                right: 10px;
+                position: fixed;
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .control-group {
+                flex-wrap: wrap;
+            }
+
+            .search-container {
+                min-width: auto;
+                width: 100%;
+            }
+
+            .zoom-controls {
+                align-self: flex-start;
+            }
+
+            .modal {
+                margin: 20px;
+                width: calc(100% - 40px);
+                padding: 24px;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .palette-grid {
+                grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            }
+
+            .zoom-btn {
+                width: 40px;
+                height: 40px;
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Map Container -->
+    <div id="map">
+        <div id="previewFrame" class="preview-frame"></div>
+    </div>
+
+    <!-- Left Controls (Zoom + Search) -->
+    <div class="left-controls">
+        <div class="control-group" style="display: flex; align-items: flex-start; gap: 12px;">
+            <div class="zoom-controls">
+                <button class="zoom-btn" id="zoomInBtn" title="Zoom In">+</button>
+                <button class="zoom-btn" id="zoomOutBtn" title="Zoom Out">−</button>
+            </div>
+            
+            <div class="search-container" id="searchGroup">
+                <div class="search-icon">🔍</div>
+                <input type="text" id="searchInput" class="search-input" placeholder="Search location..." />
+                <div id="searchResults" class="search-results"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Controls (Generate Art) -->
+    <div class="right-controls">
+        <button class="zoom-btn" id="generateArtBtn" title="Generate Art">
+            🎨
+        </button>
+    </div>
+
+    <!-- Art Generation Wizard -->
+    <div id="artWizard" class="modal-overlay">
+        <div class="modal wizard-modal" style="max-width: 900px;">
+            <div class="modal-header">
+                <h2 class="modal-title" id="wizardTitle">Generate Art - Step 1 of 5</h2>
+                <button class="modal-close" onclick="closeWizard()">&times;</button>
+            </div>
+            
+            <!-- Progress Bar -->
+            <div class="wizard-progress">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div class="progress-steps">
+                    <span class="step active" id="step1">1</span>
+                    <span class="step" id="step2">2</span>
+                    <span class="step" id="step3">3</span>
+                    <span class="step" id="step4">4</span>
+                    <span class="step" id="step5">5</span>
+                </div>
+            </div>
+            
+            <!-- Step Content -->
+            <div id="wizardContent" class="wizard-content">
+                <!-- Step content will be populated by JavaScript -->
+            </div>
+            
+            <!-- Navigation Buttons -->
+            <div class="wizard-navigation">
+                <button class="btn btn-secondary" id="wizardPrevBtn" onclick="previousStep()" style="display: none;">← Previous</button>
+                <button class="btn btn-secondary" onclick="closeWizard()">Cancel</button>
+                <button class="btn btn-primary" id="wizardNextBtn" onclick="nextStep()">Next →</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Export Modal -->
+    <div id="exportModal" class="modal-overlay">
+        <div class="modal" style="max-width: 800px;">
+            <div class="modal-header">
+                <h2 class="modal-title">Export Image</h2>
+                <button class="modal-close" onclick="closeModal('exportModal')">&times;</button>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 300px; gap: 24px;">
+                <div>
+                    <div class="form-group">
+                        <label class="form-label">Export Format</label>
+                        <select id="exportFormatSelect" class="form-select">
+                            <option value="png">PNG (Recommended)</option>
+                            <option value="jpg">JPEG</option>
+                            <option value="webp">WebP</option>
+                            <option value="svg">SVG (Vector)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Resolution</label>
+                        <select id="resolutionSelect" class="form-select">
+                            <option value="800">800x800 px (Web)</option>
+                            <option value="1200" selected>1200x1200 px (Recommended)</option>
+                            <option value="1920">1920x1920 px (HD)</option>
+                            <option value="2400">2400x2400 px (Print)</option>
+                            <option value="4000">4000x4000 px (High-End)</option>
+                            <option value="custom">Custom</option>
+                        </select>
+                    </div>
+
+                    <div id="customResolutionGroup" class="form-group" style="display: none;">
+                        <label class="form-label">Custom Resolution</label>
+                        <div class="form-row">
+                            <input type="number" id="customWidthInput" class="form-input" placeholder="Width" min="100" max="8000" />
+                            <input type="number" id="customHeightInput" class="form-input" placeholder="Height" min="100" max="8000" />
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Quality (JPEG/WebP only)</label>
+                        <input type="range" id="qualityInput" class="form-input" min="0.1" max="1" step="0.1" value="0.9" />
+                        <span id="qualityValue" style="font-size: 12px; color: #64748b;">90%</span>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="form-group">
+                        <label class="form-label">Preview</label>
+                        <div id="exportPreview" style="
+                            width: 100%;
+                            height: 200px;
+                            border: 2px dashed #d1d5db;
+                            border-radius: 12px;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            background: #f9fafb;
+                            color: #6b7280;
+                            font-size: 14px;
+                            position: relative;
+                            overflow: hidden;
+                        ">
+                            <div id="previewContent">
+                                Click "Generate Preview" to see the result
+                            </div>
+                        </div>
+                        <button class="btn btn-secondary" id="generatePreviewBtn" style="width: 100%; margin-top: 8px;">
+                            🔍 Generate Preview
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="button-group">
+                <button class="btn btn-secondary" onclick="closeModal('exportModal')">Cancel</button>
+                <button class="btn btn-primary" id="exportImageBtn" disabled>
+                    <span id="exportBtnText">Export Image</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        // Global variables
+        let map;
+        let currentPalette = 'classic';
+        let currentFileId = null;
+        let defaultConfig = {
+            seed: null,
+            radius: 1.0,
+            gradients: false,
+            frameColor: '#333333',
+            frameWidth: 10,
+            colorVariation: 0.3
+        };
+        let currentConfig = {...defaultConfig};
+
+        // Color palettes (will be loaded from API)
+        let palettes = {};
+        
+        // Preview frame variables
+        let previewFrameElement = null;
+        let frameVisible = false;
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            initMap();
+            loadPalettes();
+            initEventListeners();
+        });
+
+        // Initialize Leaflet map
+        function initMap() {
+            map = L.map('map', {
+                zoomControl: false,  // Hide default zoom controls
+                attributionControl: false  // Hide attribution
+            }).setView([40.4168, -3.7038], 13);
+            
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
+            
+            // Get preview frame element
+            previewFrameElement = document.getElementById('previewFrame');
+            
+            // Add custom zoom controls
+            document.getElementById('zoomInBtn').addEventListener('click', () => {
+                map.zoomIn();
+                updateFrameSize();
+            });
+            
+            document.getElementById('zoomOutBtn').addEventListener('click', () => {
+                map.zoomOut();
+                updateFrameSize();
+            });
+            
+            // Update frame when map moves
+            map.on('moveend zoomend', updateFrameSize);
+            map.on('resize', updateFrameSize);
+        }
+
+        // Load palettes from API
+        async function loadPalettes() {
+            try {
+                const response = await fetch('/api/palettes');
+                const palettesData = await response.json();
+                
+                if (response.ok) {
+                    palettes = {};
+                    Object.keys(palettesData).forEach(key => {
+                        palettes[key] = palettesData[key].colors;
+                    });
+                    // Palettes loaded for wizard
+                } else {
+                    showNotification('Error loading palettes: ' + palettesData.error, 'error');
+                }
+            } catch (error) {
+                showNotification('Error connecting to server', 'error');
+                // Fallback to default palettes
+                palettes = {
+                    classic: ['#e892a2', '#f9b29c', '#fcd6a4', '#c8facc', '#aad3df'],
+                    neon_city: ['#ff006e', '#8338ec', '#3a86ff', '#06ffa5', '#ffbe0b'],
+                    cyberpunk: ['#00ff41', '#ff073a', '#00d4aa', '#ff9500', '#9d4edd'],
+                    pastel_dream: ['#ff9a9e', '#fecfef', '#c7ceea', '#b5ead7', '#ffdac1'],
+                    ocean: ['#1e3a8a', '#2563eb', '#60a5fa', '#10b981', '#0891b2'],
+                    sunset: ['#7c2d12', '#ea580c', '#fb923c', '#22c55e', '#0ea5e9'],
+                    forest: ['#365314', '#65a30d', '#a3e635', '#16a34a', '#0891b2'],
+                    dark_mode: ['#bb86fc', '#03dac6', '#cf6679', '#f48fb1', '#80cbc4']
+                };
+                initPaletteGrid();
+            }
+        }
+
+        // Initialize palette grid
+        function initPaletteGrid() {
+            // Legacy function - palettes now handled by wizard
+            return;
+            grid.innerHTML = '';
+            
+            Object.keys(palettes).forEach(paletteName => {
+                const card = document.createElement('div');
+                card.className = `palette-card ${paletteName === currentPalette ? 'selected' : ''}`;
+                card.dataset.palette = paletteName;
+                
+                const preview = document.createElement('div');
+                preview.className = 'palette-preview';
+                
+                palettes[paletteName].forEach(color => {
+                    const colorDiv = document.createElement('div');
+                    colorDiv.className = 'palette-color';
+                    colorDiv.style.backgroundColor = color;
+                    preview.appendChild(colorDiv);
+                });
+                
+                const name = document.createElement('div');
+                name.className = 'palette-name';
+                name.textContent = paletteName.replace('_', ' ').toUpperCase();
+                
+                card.appendChild(preview);
+                card.appendChild(name);
+                grid.appendChild(card);
+                
+                card.addEventListener('click', () => selectPalette(paletteName));
+            });
+        }
+
+        // Initialize event listeners
+        function initEventListeners() {
+            // Search functionality
+            const searchInput = document.getElementById('searchInput');
+            const searchResults = document.getElementById('searchResults');
+            
+            let searchTimeout;
+            searchInput.addEventListener('input', function() {
+                clearTimeout(searchTimeout);
+                const query = this.value.trim();
+                
+                if (query.length < 3) {
+                    searchResults.style.display = 'none';
+                    return;
+                }
+                
+                searchTimeout = setTimeout(() => searchPlaces(query), 300);
+            });
+
+            // Hide search results when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.search-container')) {
+                    searchResults.style.display = 'none';
+                    document.getElementById('searchGroup').classList.remove('search-active');
+                }
+            });
+
+            // Generate Art button
+            document.getElementById('generateArtBtn').addEventListener('click', () => {
+                openWizard();
+            });
+
+            // Legacy modal controls removed - now handled by wizard
+
+            // Legacy range input updates removed
+        }
+
+        // Search places using API
+        async function searchPlaces(query) {
+            try {
+                const response = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
+                const results = await response.json();
+                
+                if (response.ok) {
+                    displaySearchResults(results);
+                } else {
+                    console.error('Search error:', results.error);
+                    displaySearchResults([]);
+                }
+            } catch (error) {
+                console.error('Error searching places:', error);
+                displaySearchResults([]);
+            }
+        }
+
+        // Display search results
+        function displaySearchResults(results) {
+            const container = document.getElementById('searchResults');
+            const searchGroup = document.getElementById('searchGroup');
+            container.innerHTML = '';
+            
+            if (results.length === 0) {
+                const item = document.createElement('div');
+                item.className = 'search-result-item';
+                item.innerHTML = '<div class="search-result-name">No results found</div>';
+                container.appendChild(item);
+            } else {
+                results.forEach(result => {
+                    const item = document.createElement('div');
+                    item.className = 'search-result-item';
+                    item.innerHTML = `
+                        <div class="search-result-name">${result.display_name.split(',')[0]}</div>
+                        <div class="search-result-address">${result.display_name}</div>
+                    `;
+                    
+                    item.addEventListener('click', () => {
+                        selectPlace(result);
+                        container.style.display = 'none';
+                        searchGroup.classList.remove('search-active');
+                    });
+                    
+                    container.appendChild(item);
+                });
+            }
+            
+            container.style.display = 'block';
+            searchGroup.classList.add('search-active');
+        }
+
+        // Select a place from search results
+        function selectPlace(place) {
+            const lat = parseFloat(place.lat);
+            const lon = parseFloat(place.lon);
+            
+            map.setView([lat, lon], 15);
+            document.getElementById('searchInput').value = place.display_name.split(',')[0];
+        }
+
+        // Modal functions
+        function openModal(modalId) {
+            document.getElementById(modalId).style.display = 'flex';
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+            if (modalId === 'aspectModal') {
+                togglePreviewFrame(false);
+            }
+        }
+
+        // Update live aspect changes
+        function updateLiveAspect() {
+            // Update current config with current form values
+            currentConfig.radius = parseFloat(document.getElementById('radiusInput').value) || 1.0;
+            currentConfig.frameColor = document.getElementById('frameColorInput').value;
+            currentConfig.frameWidth = parseInt(document.getElementById('frameWidthInput').value) || 0;
+            currentConfig.colorVariation = parseFloat(document.getElementById('colorVariationInput').value) || 0.3;
+            
+            // Apply visual updates
+            updateFrameStyle();
+            updateFrameSize();
+        }
+
+        // Generate preview for export
+        async function generatePreview() {
+            const btn = document.getElementById('generatePreviewBtn');
+            const exportBtn = document.getElementById('exportImageBtn');
+            const previewContent = document.getElementById('previewContent');
+            const originalText = btn.textContent;
+            
+            btn.innerHTML = '<div class="loading"><div class="spinner"></div> Generating...</div>';
+            btn.disabled = true;
+            
+            try {
+                // Get current map center
+                const center = map.getCenter();
+                
+                // Prepare request data
+                const requestData = {
+                    lat: center.lat,
+                    lon: center.lng,
+                    palette: currentPalette,
+                    seed: currentConfig.seed ? parseInt(currentConfig.seed) : null,
+                    radius: currentConfig.radius,
+                    gradients: currentConfig.gradients,
+                    frameColor: currentConfig.frameColor,
+                    frameWidth: currentConfig.frameWidth,
+                    colorVariation: currentConfig.colorVariation
+                };
+                
+                // Call API to generate map
+                const response = await fetch('/api/generate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(requestData)
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    currentFileId = result.file_id;
+                    
+                    // Show preview as iframe
+                    previewContent.innerHTML = `
+                        <iframe src="${result.file_path}" 
+                                style="width: 100%; height: 100%; border: none; border-radius: 8px;"
+                                frameborder="0">
+                        </iframe>
+                    `;
+                    
+                    // Enable export button
+                    exportBtn.disabled = false;
+                    
+                    // Keep main map as-is, only show artistic version in modal and export
+                    
+                    showNotification('Preview generated successfully', 'success');
+                } else {
+                    previewContent.innerHTML = '<div style="color: #ef4444;">Error: ' + result.error + '</div>';
+                    showNotification('Error: ' + result.error, 'error');
+                }
+                
+            } catch (error) {
+                previewContent.innerHTML = '<div style="color: #ef4444;">Connection error</div>';
+                showNotification('Error connecting to server', 'error');
+                console.error('Preview generation error:', error);
+            } finally {
+                btn.textContent = originalText;
+                btn.disabled = false;
+            }
+        }
+
+        // Select palette
+        function selectPalette(paletteName) {
+            currentPalette = paletteName;
+            
+            // Update visual selection
+            document.querySelectorAll('.palette-card').forEach(card => {
+                card.classList.toggle('selected', card.dataset.palette === paletteName);
+            });
+            
+            // Apply theme immediately for preview
+            applyMapTheme();
+        }
+
+        // Apply aspect configuration
+        function applyAspectConfig() {
+            currentConfig = {
+                seed: document.getElementById('seedInput').value || null,
+                radius: parseFloat(document.getElementById('radiusInput').value) || 1.0,
+                gradients: document.getElementById('gradientsInput').checked,
+                frameColor: document.getElementById('frameColorInput').value,
+                frameWidth: parseInt(document.getElementById('frameWidthInput').value) || 0,
+                colorVariation: parseFloat(document.getElementById('colorVariationInput').value) || 0.3
+            };
+            
+            // Apply visual changes to the map immediately
+            applyMapTheme();
+            
+            closeModal('aspectModal');
+            
+            // Show confirmation
+            showNotification('Configuration applied successfully', 'success');
+        }
+
+        // Apply theme to current map
+        function applyMapTheme() {
+            // Get the dominant colors from the current palette
+            const paletteColors = palettes[currentPalette] || palettes['classic'];
+            
+            // Create a filter based on the palette
+            const mapElement = document.getElementById('map');
+            
+            // Apply CSS filters based on palette
+            let filterStyle = '';
+            
+            switch(currentPalette) {
+                case 'neon_city':
+                    filterStyle = 'contrast(1.2) saturate(1.5) brightness(0.9) hue-rotate(10deg)';
+                    break;
+                case 'cyberpunk':
+                    filterStyle = 'contrast(1.3) saturate(1.8) brightness(0.8) hue-rotate(200deg)';
+                    break;
+                case 'pastel_dream':
+                    filterStyle = 'contrast(0.8) saturate(0.6) brightness(1.2) hue-rotate(-10deg)';
+                    break;
+                case 'ocean':
+                    filterStyle = 'contrast(1.1) saturate(1.2) brightness(0.95) hue-rotate(180deg)';
+                    break;
+                case 'sunset':
+                    filterStyle = 'contrast(1.2) saturate(1.4) brightness(1.1) hue-rotate(30deg)';
+                    break;
+                case 'forest':
+                    filterStyle = 'contrast(1.1) saturate(1.3) brightness(0.9) hue-rotate(90deg)';
+                    break;
+                case 'dark_mode':
+                    filterStyle = 'contrast(1.4) saturate(1.1) brightness(0.7) invert(0.1)';
+                    break;
+                default: // classic
+                    filterStyle = 'contrast(1.0) saturate(1.0) brightness(1.0)';
+            }
+            
+            mapElement.style.filter = filterStyle;
+            
+            // Add colored overlay
+            let existingOverlay = document.querySelector('.map-color-overlay');
+            if (existingOverlay) {
+                existingOverlay.remove();
+            }
+            
+            const overlay = document.createElement('div');
+            overlay.className = 'map-color-overlay';
+            overlay.style.cssText = `
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                pointer-events: none;
+                z-index: 2;
+                mix-blend-mode: ${currentPalette === 'dark_mode' ? 'multiply' : 'overlay'};
+                opacity: 0.1;
+                background: linear-gradient(45deg, ${paletteColors[0]}, ${paletteColors[1]});
+            `;
+            
+            mapElement.appendChild(overlay);
+        }
+
+        // Show/hide preview frame
+        function togglePreviewFrame(show) {
+            frameVisible = show;
+            if (previewFrameElement) {
+                previewFrameElement.classList.toggle('visible', show);
+                if (show) {
+                    updateFrameSize();
+                    updateFrameStyle();
+                }
+            }
+        }
+
+        // Update frame size based on current zoom and radius
+        function updateFrameSize() {
+            if (!frameVisible || !previewFrameElement || !map) return;
+            
+            const mapContainer = map.getContainer();
+            const containerSize = Math.min(mapContainer.offsetWidth, mapContainer.offsetHeight);
+            
+            // Calculate frame size based on radius and zoom level
+            const zoom = map.getZoom();
+            const radiusInMeters = currentConfig.radius * 1000; // Convert km to meters
+            const pixelsPerMeter = (256 * Math.pow(2, zoom)) / (40075017 * Math.cos(map.getCenter().lat * Math.PI / 180));
+            let frameSize = radiusInMeters * pixelsPerMeter * 2; // Diameter
+            
+            // Ensure reasonable bounds
+            frameSize = Math.max(100, Math.min(containerSize * 0.8, frameSize));
+            
+            previewFrameElement.style.width = frameSize + 'px';
+            previewFrameElement.style.height = frameSize + 'px';
+        }
+
+        // Update frame style based on current config
+        function updateFrameStyle() {
+            if (!previewFrameElement) return;
+            
+            previewFrameElement.style.borderColor = currentConfig.frameColor;
+            previewFrameElement.style.borderWidth = currentConfig.frameWidth + 'px';
+        }
+
+        // Reset aspect configuration to defaults
+        function resetAspectConfig() {
+            currentConfig = {...defaultConfig};
+            currentPalette = 'classic';
+            
+            // Update form inputs
+            document.getElementById('seedInput').value = '';
+            document.getElementById('radiusInput').value = defaultConfig.radius;
+            document.getElementById('gradientsInput').checked = defaultConfig.gradients;
+            document.getElementById('frameColorInput').value = defaultConfig.frameColor;
+            document.getElementById('frameWidthInput').value = defaultConfig.frameWidth;
+            document.getElementById('colorVariationInput').value = defaultConfig.colorVariation;
+            document.getElementById('colorVariationValue').textContent = defaultConfig.colorVariation;
+            
+            // Update palette selection
+            selectPalette('classic');
+            
+            // Apply changes
+            applyMapTheme();
+            updateFrameStyle();
+            updateFrameSize();
+            
+            showNotification('Aspect reset to default values', 'success');
+        }
+
+        // Import palette
+        function importPalette(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const importedPalette = JSON.parse(e.target.result);
+                    
+                    // Add to temporary palettes (not persistent)
+                    const paletteName = 'imported_' + Date.now();
+                    palettes[paletteName] = importedPalette.colors || Object.values(importedPalette)[0] || [];
+                    
+                    // Refresh palette grid
+                    // Palettes loaded for wizard
+                    selectPalette(paletteName);
+                    
+                    showNotification('Palette imported successfully', 'success');
+                } catch (error) {
+                    showNotification('Error importing palette', 'error');
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // Export current palette
+        async function exportCurrentPalette() {
+            try {
+                // Get the full palette data from the server
+                const response = await fetch(`/api/palette/export/${currentPalette}`);
+                
+                if (response.ok) {
+                    // Create download from server response
+                    const blob = await response.blob();
+                    const url = URL.createObjectURL(blob);
+                    
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `palette_${currentPalette}.json`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    
+                    URL.revokeObjectURL(url);
+                    showNotification('Palette exported successfully', 'success');
+                } else {
+                    // Fallback to client-side export if server fails
+                    const paletteData = {
+                        name: currentPalette,
+                        colors: palettes[currentPalette],
+                        exported_at: new Date().toISOString(),
+                        source: 'client'
+                    };
+                    
+                    const blob = new Blob([JSON.stringify(paletteData, null, 2)], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `palette_${currentPalette}.json`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    
+                    URL.revokeObjectURL(url);
+                    showNotification('Palette exported (offline mode)', 'success');
+                }
+            } catch (error) {
+                showNotification('Error exporting palette', 'error');
+                console.error('Export error:', error);
+            }
+        }
+
+        // Toggle custom resolution inputs
+        function toggleCustomResolution() {
+            const select = document.getElementById('resolutionSelect');
+            const customGroup = document.getElementById('customResolutionGroup');
+            
+            customGroup.style.display = select.value === 'custom' ? 'block' : 'none';
+        }
+
+
+        // Export image
+        async function exportImage() {
+            const btn = document.getElementById('exportImageBtn');
+            const btnText = document.getElementById('exportBtnText');
+            const originalText = btnText.textContent;
+            
+            if (!currentFileId) {
+                showNotification('You must generate a preview first', 'error');
+                return;
+            }
+            
+            btnText.innerHTML = '<div class="loading"><div class="spinner"></div> Exporting...</div>';
+            btn.disabled = true;
+            
+            try {
+                const format = document.getElementById('exportFormatSelect').value;
+                const resolutionSelect = document.getElementById('resolutionSelect').value;
+                
+                let width, height;
+                if (resolutionSelect === 'custom') {
+                    width = parseInt(document.getElementById('customWidthInput').value) || 1200;
+                    height = parseInt(document.getElementById('customHeightInput').value) || 1200;
+                } else {
+                    width = height = parseInt(resolutionSelect);
+                }
+                
+                const quality = parseFloat(document.getElementById('qualityInput').value);
+                
+                // Prepare export request
+                const exportData = {
+                    file_id: currentFileId,
+                    format: format,
+                    width: width,
+                    height: height,
+                    quality: quality
+                };
+                
+                // Call export API
+                const response = await fetch('/api/export', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(exportData)
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showNotification(`Image exported successfully (${format.toUpperCase()}, ${width}x${height})`, 'success');
+                    
+                    // Download the exported file
+                    const downloadLink = document.createElement('a');
+                    downloadLink.href = result.file_path;
+                    downloadLink.download = `generative_map.${format}`;
+                    document.body.appendChild(downloadLink);
+                    downloadLink.click();
+                    document.body.removeChild(downloadLink);
+                    
+                    closeModal('exportModal');
+                } else {
+                    showNotification('Error: ' + result.error, 'error');
+                }
+                
+            } catch (error) {
+                showNotification('Error connecting to server', 'error');
+                console.error('Export error:', error);
+            } finally {
+                btnText.textContent = originalText;
+                btn.disabled = false;
+            }
+        }
+
+        // Show notification
+        function showNotification(message, type = 'info') {
+            // Create notification element
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                bottom: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                z-index: 3000;
+                padding: 12px 20px;
+                border-radius: 8px;
+                font-size: 14px;
+                font-weight: 500;
+                color: white;
+                max-width: 400px;
+                animation: slideInUp 0.3s ease;
+                ${type === 'success' ? 'background: linear-gradient(135deg, #10b981, #065f46);' : ''}
+                ${type === 'error' ? 'background: linear-gradient(135deg, #ef4444, #dc2626);' : ''}
+                ${type === 'info' ? 'background: linear-gradient(135deg, #3b82f6, #1d4ed8);' : ''}
+            `;
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            // Remove after 4 seconds
+            setTimeout(() => {
+                notification.style.animation = 'slideOutDown 0.3s ease forwards';
+                setTimeout(() => {
+                    document.body.removeChild(notification);
+                }, 300);
+            }, 4000);
+        }
+
+        // Wizard functionality
+        let currentStep = 1;
+        let totalSteps = 5;
+        let wizardData = {
+            palette: 'classic',
+            seed: null,
+            radius: 1.0,
+            frameColor: '#333333',
+            frameWidth: 10,
+            colorVariation: 0.3,
+            gradients: false,
+            format: 'png',
+            width: 1200,
+            height: 1200,
+            quality: 0.9
+        };
+
+        function openWizard() {
+            currentStep = 1;
+            updateWizardStep();
+            document.getElementById('artWizard').style.display = 'flex';
+        }
+
+        function closeWizard() {
+            document.getElementById('artWizard').style.display = 'none';
+            currentStep = 1;
+        }
+
+        function nextStep() {
+            if (currentStep < totalSteps) {
+                if (validateCurrentStep()) {
+                    currentStep++;
+                    updateWizardStep();
+                }
+            } else {
+                // Final step - export only (preview already generated)
+                exportFromWizard();
+            }
+        }
+
+        function previousStep() {
+            if (currentStep > 1) {
+                currentStep--;
+                updateWizardStep();
+            }
+        }
+
+        function updateWizardStep() {
+            // Update progress
+            document.getElementById('progressFill').style.width = `${(currentStep / totalSteps) * 100}%`;
+            document.getElementById('wizardTitle').textContent = `Generate Art - Step ${currentStep} of ${totalSteps}`;
+            
+            // Update step indicators
+            for (let i = 1; i <= totalSteps; i++) {
+                const stepEl = document.getElementById(`step${i}`);
+                stepEl.classList.remove('active', 'completed');
+                if (i < currentStep) stepEl.classList.add('completed');
+                else if (i === currentStep) stepEl.classList.add('active');
+            }
+            
+            // Update navigation buttons
+            document.getElementById('wizardPrevBtn').style.display = currentStep > 1 ? 'block' : 'none';
+            document.getElementById('wizardNextBtn').textContent = currentStep === totalSteps ? 'Export Image' : 'Next →';
+            
+            // Load step content
+            loadStepContent();
+        }
+
+        function loadStepContent() {
+            const content = document.getElementById('wizardContent');
+            
+            switch (currentStep) {
+                case 1:
+                    content.innerHTML = getStep1Content();
+                    break;
+                case 2:
+                    content.innerHTML = getStep2Content();
+                    break;
+                case 3:
+                    content.innerHTML = getStep3Content();
+                    break;
+                case 4:
+                    content.innerHTML = getStep4Content();
+                    break;
+                case 5:
+                    content.innerHTML = getStep5Content();
+                    break;
+            }
+            
+            // Initialize step-specific functionality
+            initStepFunctionality();
+        }
+
+        function getStep1Content() {
+            return `
+                <div class="step-container active">
+                    <div class="step-header">
+                        <h3 class="step-title">Choose Color Palette</h3>
+                        <p class="step-description">Select the artistic style for your generative map</p>
+                    </div>
+                    
+                    <div class="step-example">
+                        <p style="color: #6b7280; margin-bottom: 12px;">Each palette creates a unique artistic interpretation</p>
+                        <div id="palettePreviewColors" style="display: flex; gap: 8px; justify-content: center;">
+                            <div style="width: 30px; height: 30px; background: #3b82f6; border-radius: 4px;"></div>
+                            <div style="width: 30px; height: 30px; background: #10b981; border-radius: 4px;"></div>
+                            <div style="width: 30px; height: 30px; background: #f59e0b; border-radius: 4px;"></div>
+                            <div style="width: 30px; height: 30px; background: #ef4444; border-radius: 4px;"></div>
+                        </div>
+                        <p id="palettePreviewName" style="color: #374151; font-size: 12pt; font-weight: 500; margin-top: 8px; text-align: center;">Classic</p>
+                    </div>
+                    
+                    <div id="wizardPaletteGrid" class="palette-grid">
+                        <!-- Palettes will be populated here -->
+                    </div>
+                    
+                    <div class="import-export-section" style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
+                        <h4 style="margin-bottom: 12px; font-size: 14px; font-weight: 600;">Import/Export Palettes</h4>
+                        <div style="display: flex; gap: 12px; align-items: center;">
+                            <div class="file-input-wrapper">
+                                <input type="file" id="wizardPaletteFileInput" class="file-input" accept=".json" style="display: none;" />
+                                <label for="wizardPaletteFileInput" class="btn btn-secondary" style="margin: 0; cursor: pointer;">
+                                    📁 Import Palette
+                                </label>
+                            </div>
+                            <button class="btn btn-secondary" id="wizardExportPaletteBtn">💾 Export Current</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function getStep2Content() {
+            return `
+                <div class="step-container active">
+                    <div class="step-header">
+                        <h3 class="step-title">Set Generation Parameters</h3>
+                        <p class="step-description">Configure how your art will be generated</p>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Seed (Optional)</label>
+                            <input type="number" id="wizardSeed" class="form-input" placeholder="Random if empty" value="${wizardData.seed || ''}" />
+                            <small style="color: #6b7280;">Same seed = reproducible art</small>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Radius (km)</label>
+                            <input type="number" id="wizardRadius" class="form-input" value="${wizardData.radius}" step="0.1" min="0.1" max="10" />
+                            <small style="color: #6b7280;">Area size around location</small>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Color Variation (0.0 - 1.0)</label>
+                        <input type="range" id="wizardColorVariation" class="form-input" min="0" max="1" step="0.1" value="${wizardData.colorVariation}" />
+                        <span id="wizardColorVariationValue" style="font-size: 12px; color: #64748b;">${wizardData.colorVariation}</span>
+                        <small style="color: #6b7280; display: block; margin-top: 4px;">Higher values create more color diversity</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="wizardGradients" ${wizardData.gradients ? 'checked' : ''} /> Enable gradient effects
+                        </label>
+                    </div>
+                </div>
+            `;
+        }
+
+        function getStep3Content() {
+            return `
+                <div class="step-container active">
+                    <div class="step-header">
+                        <h3 class="step-title">Circular Frame (Optional)</h3>
+                        <p class="step-description">Add a decorative frame around your art</p>
+                    </div>
+                    
+                    <div class="step-example">
+                        <p style="color: #6b7280; margin-bottom: 8px;">Preview of circular frame effect</p>
+                        <div style="width: 100px; height: 100px; margin: 0 auto; border: 4px solid #333; border-radius: 50%; background: linear-gradient(45deg, #f0f0f0, #e0e0e0);"></div>
+                        <p style="color: #f59e0b; font-size: 12px; margin-top: 8px; font-weight: 500;">⚠️ Set width to 0 to disable the circular frame</p>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Frame Color</label>
+                            <input type="color" id="wizardFrameColor" class="form-input" value="${wizardData.frameColor}" />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Frame Width (0 = disabled)</label>
+                            <input type="number" id="wizardFrameWidth" class="form-input" value="${wizardData.frameWidth}" min="0" max="50" />
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function getStep4Content() {
+            return `
+                <div class="step-container active">
+                    <div class="step-header">
+                        <h3 class="step-title">Export Settings</h3>
+                        <p class="step-description">Choose format and quality for your final image</p>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Format</label>
+                            <select id="wizardFormat" class="form-select">
+                                <option value="png" ${wizardData.format === 'png' ? 'selected' : ''}>PNG (Best quality)</option>
+                                <option value="jpg" ${wizardData.format === 'jpg' ? 'selected' : ''}>JPEG (Smaller file)</option>
+                                <option value="webp" ${wizardData.format === 'webp' ? 'selected' : ''}>WebP (Modern)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Resolution</label>
+                            <select id="wizardResolution" class="form-select">
+                                <option value="800">800x800 px (Web)</option>
+                                <option value="1200" selected>1200x1200 px (Recommended)</option>
+                                <option value="1920">1920x1920 px (HD)</option>
+                                <option value="2400">2400x2400 px (Print)</option>
+                                <option value="4000">4000x4000 px (High-End)</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group" id="wizardQualityGroup">
+                        <label class="form-label">Quality (JPEG/WebP only)</label>
+                        <input type="range" id="wizardQuality" class="form-input" min="0.1" max="1" step="0.1" value="${wizardData.quality}" />
+                        <span id="wizardQualityValue" style="font-size: 12px; color: #64748b;">${Math.round(wizardData.quality * 100)}%</span>
+                    </div>
+                </div>
+            `;
+        }
+
+        function getStep5Content() {
+            return `
+                <div class="step-container active">
+                    <div class="step-header">
+                        <h3 class="step-title">Final Preview & Export</h3>
+                        <p class="step-description">Review your settings and generate your artistic map</p>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 300px; gap: 24px;">
+                        <div>
+                            <h4 style="margin-bottom: 12px;">Settings Summary:</h4>
+                            <div id="wizardSummary" style="background: #f9fafb; padding: 16px; border-radius: 8px; font-size: 14px;">
+                                <!-- Summary will be populated -->
+                            </div>
+                        </div>
+                        <div>
+                            <h4 style="margin-bottom: 4px;">Approximation:</h4>
+                            <p style="font-size: 11px; color: #6b7280; margin-bottom: 12px;">Final export will have higher detail and resolution</p>
+                            <div id="wizardPreview" style="
+                                width: 100%;
+                                height: 200px;
+                                border: 2px dashed #d1d5db;
+                                border-radius: 8px;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                background: #f9fafb;
+                                color: #6b7280;
+                                font-size: 14px;
+                            ">
+                                <div style="text-align: center;">
+                                    <div style="margin-bottom: 8px;">⏳</div>
+                                    <div>Generating approximation...</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function initStepFunctionality() {
+            switch (currentStep) {
+                case 1:
+                    loadPaletteOptionsInWizard();
+                    // Import/Export handlers
+                    const importInput = document.getElementById('wizardPaletteFileInput');
+                    const exportBtn = document.getElementById('wizardExportPaletteBtn');
+                    if (importInput) {
+                        importInput.addEventListener('change', importPaletteInWizard);
+                    }
+                    if (exportBtn) {
+                        exportBtn.addEventListener('click', exportCurrentPaletteFromWizard);
+                    }
+                    break;
+                case 2:
+                    // Color variation slider
+                    const colorVariationSlider = document.getElementById('wizardColorVariation');
+                    if (colorVariationSlider) {
+                        colorVariationSlider.addEventListener('input', (e) => {
+                            document.getElementById('wizardColorVariationValue').textContent = e.target.value;
+                        });
+                    }
+                    break;
+                case 3:
+                    // No specific functionality needed for frame step
+                    break;
+                case 4:
+                    // Quality slider and format change
+                    const qualitySlider = document.getElementById('wizardQuality');
+                    const formatSelect = document.getElementById('wizardFormat');
+                    
+                    if (qualitySlider) {
+                        qualitySlider.addEventListener('input', (e) => {
+                            document.getElementById('wizardQualityValue').textContent = Math.round(e.target.value * 100) + '%';
+                        });
+                    }
+                    
+                    if (formatSelect) {
+                        formatSelect.addEventListener('change', (e) => {
+                            const qualityGroup = document.getElementById('wizardQualityGroup');
+                            qualityGroup.style.display = ['jpg', 'webp'].includes(e.target.value) ? 'block' : 'none';
+                        });
+                        // Trigger initial state
+                        formatSelect.dispatchEvent(new Event('change'));
+                    }
+                    break;
+                case 5:
+                    updateWizardSummary();
+                    generateWizardPreview();
+                    break;
+            }
+        }
+
+        function validateCurrentStep() {
+            switch (currentStep) {
+                case 1:
+                    // Save palette selection
+                    const selectedPalette = document.querySelector('.palette-option.selected');
+                    if (selectedPalette) {
+                        wizardData.palette = selectedPalette.dataset.palette;
+                    }
+                    return true;
+                case 2:
+                    // Save parameters
+                    wizardData.seed = document.getElementById('wizardSeed').value || null;
+                    wizardData.radius = parseFloat(document.getElementById('wizardRadius').value);
+                    wizardData.colorVariation = parseFloat(document.getElementById('wizardColorVariation').value);
+                    wizardData.gradients = document.getElementById('wizardGradients').checked;
+                    return wizardData.radius >= 0.1 && wizardData.radius <= 10;
+                case 3:
+                    // Save frame settings
+                    wizardData.frameColor = document.getElementById('wizardFrameColor').value;
+                    wizardData.frameWidth = parseInt(document.getElementById('wizardFrameWidth').value);
+                    return true;
+                case 4:
+                    // Save export settings
+                    wizardData.format = document.getElementById('wizardFormat').value;
+                    const resolution = document.getElementById('wizardResolution').value;
+                    wizardData.width = parseInt(resolution);
+                    wizardData.height = parseInt(resolution);
+                    wizardData.quality = parseFloat(document.getElementById('wizardQuality').value);
+                    return true;
+                case 5:
+                    return true;
+            }
+            return false;
+        }
+
+        function loadPaletteOptionsInWizard() {
+            const grid = document.getElementById('wizardPaletteGrid');
+            if (!grid) return;
+            
+            grid.innerHTML = '';
+            
+            Object.keys(palettes).forEach(paletteName => {
+                const palette = palettes[paletteName];
+                console.log('Palette structure:', paletteName, palette); // Debug
+                const option = document.createElement('div');
+                option.className = `palette-option ${paletteName === wizardData.palette ? 'selected' : ''}`;
+                option.dataset.palette = paletteName;
+                option.innerHTML = `
+                    <div class="palette-colors">
+                        ${(palette.colors || []).slice(0, 5).map(color => `<div class="color-swatch" style="background: ${color}"></div>`).join('')}
+                    </div>
+                    <div class="palette-name">${palette.display_name || paletteName.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</div>
+                `;
+                
+                option.addEventListener('click', () => {
+                    document.querySelectorAll('.palette-option').forEach(p => p.classList.remove('selected'));
+                    option.classList.add('selected');
+                    updatePalettePreview(paletteName, palette);
+                });
+                
+                grid.appendChild(option);
+            });
+            
+            // Set initial preview to selected palette
+            const selectedPalette = wizardData.palette;
+            if (palettes[selectedPalette]) {
+                updatePalettePreview(selectedPalette, palettes[selectedPalette]);
+            } else if (Object.keys(palettes).length > 0) {
+                const firstPalette = Object.keys(palettes)[0];
+                updatePalettePreview(firstPalette, palettes[firstPalette]);
+            }
+        }
+
+        function updatePalettePreview(paletteName, palette) {
+            const previewColors = document.getElementById('palettePreviewColors');
+            const previewName = document.getElementById('palettePreviewName');
+            
+            if (!previewColors || !previewName) return;
+            
+            console.log('Updating palette preview:', paletteName, palette); // Debug
+            
+            // Update colors - use the colors array from API response
+            let colors = palette.colors || [];
+            
+            // Fallback colors by palette name if API colors are missing
+            if (!colors || colors.length === 0) {
+                const fallbackColors = {
+                    'neon_city': ['#ff006e', '#8338ec', '#3a86ff', '#06ffa5'],
+                    'cyberpunk': ['#00ff41', '#ff073a', '#00d4aa', '#ff9500'],
+                    'pastel_dream': ['#ffb3e6', '#b3d9ff', '#c2f0c2', '#ffffb3'],
+                    'ocean': ['#006064', '#00bcd4', '#4dd0e1', '#80deea'],
+                    'sunset': ['#ff5722', '#ff9800', '#ffc107', '#ffeb3b'],
+                    'forest': ['#2e7d32', '#388e3c', '#43a047', '#66bb6a'],
+                    'dark_mode': ['#424242', '#616161', '#757575', '#9e9e9e'],
+                    'classic': ['#1976d2', '#388e3c', '#f57c00', '#d32f2f']
+                };
+                colors = fallbackColors[paletteName] || ['#3b82f6', '#10b981', '#f59e0b', '#ef4444'];
+            }
+            
+            console.log('Colors to display:', colors); // Debug
+            
+            previewColors.innerHTML = colors.slice(0, 4).map(color => 
+                `<div style="width: 30px; height: 30px; background: ${color}; border-radius: 4px; border: 1px solid rgba(0,0,0,0.1);"></div>`
+            ).join('');
+            
+            // Update name - use display_name from API or format the palette name
+            const displayName = palette.display_name || paletteName.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+            previewName.textContent = displayName;
+        }
+
+        function updateWizardSummary() {
+            const summary = document.getElementById('wizardSummary');
+            if (!summary) return;
+            
+            const paletteName = palettes[wizardData.palette]?.display_name || wizardData.palette;
+            
+            summary.innerHTML = `
+                <strong>Palette:</strong> ${paletteName}<br>
+                <strong>Seed:</strong> ${wizardData.seed || 'Random'}<br>
+                <strong>Radius:</strong> ${wizardData.radius} km<br>
+                <strong>Gradients:</strong> ${wizardData.gradients ? 'Enabled' : 'Disabled'}<br>
+                <strong>Frame:</strong> ${wizardData.frameWidth > 0 ? `${wizardData.frameWidth}px, ${wizardData.frameColor}` : 'Disabled'}<br>
+                <strong>Color Variation:</strong> ${wizardData.colorVariation}<br>
+                <strong>Export:</strong> ${wizardData.format.toUpperCase()}, ${wizardData.width}x${wizardData.height}px
+                ${['jpg', 'webp'].includes(wizardData.format) ? `, ${Math.round(wizardData.quality * 100)}% quality` : ''}
+            `;
+        }
+
+        async function generateWizardPreview() {
+            try {
+                const preview = document.getElementById('wizardPreview');
+                preview.innerHTML = `
+                    <div style="text-align: center;">
+                        <div style="margin-bottom: 8px;">⏳</div>
+                        <div>Generating approximation...</div>
+                    </div>
+                `;
+                
+                // Get current location
+                const center = map.getCenter();
+                
+                // Generate the map
+                const generateResponse = await fetch('/api/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        lat: center.lat,
+                        lon: center.lng,
+                        palette: wizardData.palette,
+                        seed: wizardData.seed,
+                        radius: wizardData.radius,
+                        gradients: wizardData.gradients,
+                        frameColor: wizardData.frameColor,
+                        frameWidth: wizardData.frameWidth,
+                        colorVariation: wizardData.colorVariation
+                    })
+                });
+                
+                const generateResult = await generateResponse.json();
+                
+                if (generateResult.success) {
+                    // Store file ID for export
+                    wizardData.fileId = generateResult.file_id;
+                    
+                    // Show preview in iframe
+                    preview.innerHTML = `
+                        <iframe src="/api/map/${generateResult.file_id}" 
+                                style="width: 100%; height: 100%; border: none; border-radius: 6px;">
+                        </iframe>
+                    `;
+                    
+                    showNotification('Approximation generated successfully', 'success');
+                } else {
+                    preview.innerHTML = `
+                        <div style="color: #ef4444; text-align: center;">
+                            <div style="margin-bottom: 8px;">❌</div>
+                            <div>Error: ${generateResult.error}</div>
+                        </div>
+                    `;
+                }
+                
+            } catch (error) {
+                const preview = document.getElementById('wizardPreview');
+                preview.innerHTML = `
+                    <div style="color: #ef4444; text-align: center;">
+                        <div style="margin-bottom: 8px;">❌</div>
+                        <div>Connection error</div>
+                    </div>
+                `;
+            }
+        }
+
+        async function exportFromWizard() {
+            if (!wizardData.fileId) {
+                showNotification('No preview generated', 'error');
+                return;
+            }
+            
+            try {
+                const nextBtn = document.getElementById('wizardNextBtn');
+                const originalText = nextBtn.textContent;
+                nextBtn.textContent = 'Exporting...';
+                nextBtn.disabled = true;
+                
+                // Export the image
+                const exportResponse = await fetch('/api/export', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        file_id: wizardData.fileId,
+                        format: wizardData.format,
+                        width: wizardData.width,
+                        height: wizardData.height,
+                        quality: wizardData.quality
+                    })
+                });
+                
+                const exportResult = await exportResponse.json();
+                
+                if (exportResult.success) {
+                    // Auto-download
+                    const link = document.createElement('a');
+                    link.href = exportResult.file_path;
+                    link.download = `generative-map-${Date.now()}.${wizardData.format}`;
+                    link.click();
+                    
+                    showNotification('Image exported successfully!', 'success');
+                    
+                    setTimeout(() => {
+                        closeWizard();
+                    }, 2000);
+                } else {
+                    showNotification('Export failed: ' + exportResult.error, 'error');
+                }
+                
+            } catch (error) {
+                showNotification('Error exporting: ' + error.message, 'error');
+            } finally {
+                const nextBtn = document.getElementById('wizardNextBtn');
+                nextBtn.textContent = 'Export Image';
+                nextBtn.disabled = false;
+            }
+        }
+
+        async function generateAndExport() {
+            try {
+                const nextBtn = document.getElementById('wizardNextBtn');
+                const originalText = nextBtn.textContent;
+                nextBtn.textContent = 'Generating...';
+                nextBtn.disabled = true;
+                
+                // Get current location
+                const center = map.getCenter();
+                
+                // Generate the map
+                const generateResponse = await fetch('/api/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        lat: center.lat,
+                        lon: center.lng,
+                        palette: wizardData.palette,
+                        seed: wizardData.seed,
+                        radius: wizardData.radius,
+                        gradients: wizardData.gradients,
+                        frameColor: wizardData.frameColor,
+                        frameWidth: wizardData.frameWidth,
+                        colorVariation: wizardData.colorVariation
+                    })
+                });
+                
+                const generateResult = await generateResponse.json();
+                
+                if (generateResult.success) {
+                    nextBtn.textContent = 'Exporting...';
+                    
+                    // Export the image
+                    const exportResponse = await fetch('/api/export', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            file_id: generateResult.file_id,
+                            format: wizardData.format,
+                            width: wizardData.width,
+                            height: wizardData.height,
+                            quality: wizardData.quality
+                        })
+                    });
+                    
+                    const exportResult = await exportResponse.json();
+                    
+                    if (exportResult.success) {
+                        // Show preview
+                        const preview = document.getElementById('wizardPreview');
+                        preview.innerHTML = `
+                            <img src="${exportResult.file_path}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 6px;" />
+                        `;
+                        
+                        // Auto-download
+                        const link = document.createElement('a');
+                        link.href = exportResult.file_path;
+                        link.download = `generative-map-${Date.now()}.${wizardData.format}`;
+                        link.click();
+                        
+                        showNotification('Art generated and exported successfully!', 'success');
+                        
+                        setTimeout(() => {
+                            closeWizard();
+                        }, 2000);
+                    } else {
+                        showNotification('Export failed: ' + exportResult.error, 'error');
+                    }
+                } else {
+                    showNotification('Generation failed: ' + generateResult.error, 'error');
+                }
+                
+            } catch (error) {
+                showNotification('Error: ' + error.message, 'error');
+            } finally {
+                const nextBtn = document.getElementById('wizardNextBtn');
+                nextBtn.textContent = originalText;
+                nextBtn.disabled = false;
+            }
+        }
+
+        // Palette import/export functions for wizard
+        async function importPaletteInWizard(event) {
+            try {
+                const file = event.target.files[0];
+                if (!file) return;
+
+                const formData = new FormData();
+                formData.append('file', file);
+
+                const response = await fetch('/api/palette/import', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    showNotification('Palette imported successfully', 'success');
+                    // You could add the imported palette to the grid here
+                } else {
+                    showNotification('Error: ' + result.error, 'error');
+                }
+            } catch (error) {
+                showNotification('Error importing palette', 'error');
+            }
+        }
+
+        async function exportCurrentPaletteFromWizard() {
+            try {
+                const selectedPalette = document.querySelector('.palette-option.selected');
+                const paletteName = selectedPalette ? selectedPalette.dataset.palette : wizardData.palette;
+                
+                const response = await fetch(`/api/palette/export/${paletteName}`);
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `palette_${paletteName}.json`;
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    showNotification('Palette exported successfully', 'success');
+                } else {
+                    showNotification('Error exporting palette', 'error');
+                }
+            } catch (error) {
+                showNotification('Error exporting palette', 'error');
+            }
+        }
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideInRight {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+            @keyframes slideOutRight {
+                from { transform: translateX(0); opacity: 1; }
+                to { transform: translateX(100%); opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>

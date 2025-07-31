@@ -40,7 +40,16 @@ pip install -r requirements.txt
 playwright install chromium
 ```
 
-## 🎨 Usage
+## 🌐 Web Application (Recommended)
+
+```bash
+# Start the web interface
+python start_web.py
+
+# Open browser at http://localhost:5000
+```
+
+## 🎨 Command Line Usage
 
 ### Generate Generative Art
 
