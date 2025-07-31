@@ -523,12 +523,15 @@ class MapGenerator:
             }
             """
         
+        # Only apply circular clip if frame is enabled
+        clip_path_css = "clip-path: circle(50% at center);" if self.frame_width > 0 else ""
+        
         return f"""
         <style>
         .leaflet-container {{
             background: {self._get_background_color()};
             font-family: 'Courier New', monospace;
-            clip-path: circle(50% at center);
+            {clip_path_css}
         }}
         
         .leaflet-popup-content-wrapper {{
