@@ -26,7 +26,7 @@
         .control-group { display: flex; gap: 8px; align-items: center; }
         .search-container { position: relative; min-width: 320px; flex: 1; }
         .search-input { width: 100%; padding: 12px 16px 12px 48px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; background: white; transition: all 0.2s ease; }
-        .search-input:focus { outline: none; border-color: #667eea; box-shadow: 0 0 0 3px rgba(102,126,234,0.1); }
+        .search-input:focus { outline: none; border-color: #4f6ef2; box-shadow: 0 0 0 3px rgba(79,110,242,0.1); }
         .search-icon { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: #6b7280; font-size: 18px; }
         .search-results { position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #d1d5db; border-radius: 8px; margin-top: 8px; max-height: 300px; overflow-y: auto; display: none; box-shadow: 0 8px 24px rgba(0,0,0,0.1); z-index: 2000; }
         .search-result-item { padding: 12px 16px; cursor: pointer; border-bottom: 1px solid #e2e8f0; transition: background-color 0.2s ease; }
@@ -35,36 +35,36 @@
         .search-result-name { font-weight: 500; color: #1e293b; }
         .search-result-address { font-size: 12px; color: #64748b; margin-top: 2px; }
 
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 2000; display: none; align-items: center; justify-content: center; animation: fadeIn 0.2s ease; }
-        .modal { background: white; border-radius: 16px; padding: 32px; max-width: 600px; width: 90%; max-height: 80vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.2); animation: slideUp 0.3s ease; }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); z-index: 2000; display: none; align-items: center; justify-content: center; animation: fadeIn 0.2s ease; }
+        .modal { background: white; border-radius: 16px; padding: 32px; max-width: 600px; width: 90%; max-height: 85vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.15); animation: slideUp 0.3s ease; }
         .modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid #e2e8f0; }
         .modal-title { font-size: 20px; font-weight: 600; color: #1e293b; }
         .modal-close { background: none; border: none; font-size: 24px; color: #64748b; cursor: pointer; padding: 4px; border-radius: 6px; transition: all 0.2s ease; }
         .modal-close:hover { background: #f1f5f9; color: #334155; }
 
         .palette-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 16px; margin: 20px 0; }
-        .palette-option { border: 2px solid transparent; border-radius: 8px; padding: 12px; cursor: pointer; transition: all 0.2s ease; background: white; }
-        .palette-option:hover { border-color: #3b82f6; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-        .palette-option.selected { border-color: #3b82f6; background: #eff6ff; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
+        .palette-option { border: 2px solid #e2e8f0; border-radius: 8px; padding: 12px; cursor: pointer; transition: all 0.2s ease; background: white; }
+        .palette-option:hover { border-color: #4f6ef2; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+        .palette-option.selected { border-color: #4f6ef2; background: #f0f3ff; box-shadow: 0 0 0 3px rgba(79,110,242,0.1); }
         .palette-colors { display: flex; gap: 4px; margin-bottom: 8px; justify-content: center; }
-        .color-swatch { width: 24px; height: 24px; border-radius: 4px; border: 1px solid rgba(0,0,0,0.1); }
+        .color-swatch { width: 24px; height: 24px; border-radius: 4px; border: 1px solid rgba(0,0,0,0.08); }
         .palette-name { text-align: center; font-size: 12px; font-weight: 500; color: #374151; }
 
         .form-group { margin-bottom: 20px; }
         .form-label { display: block; font-size: 14px; font-weight: 500; color: #374151; margin-bottom: 8px; }
-        .form-input, .form-select { width: 100%; padding: 12px 16px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; transition: border-color 0.2s ease; }
-        .form-input:focus, .form-select:focus { outline: none; border-color: #667eea; box-shadow: 0 0 0 3px rgba(102,126,234,0.1); }
+        .form-input, .form-select { width: 100%; padding: 12px 16px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; transition: border-color 0.2s ease; background: white; }
+        .form-input:focus, .form-select:focus { outline: none; border-color: #4f6ef2; box-shadow: 0 0 0 3px rgba(79,110,242,0.1); }
         .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 
         .btn { padding: 12px 24px; border: none; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s ease; }
         .btn-secondary { background: #f1f5f9; color: #475569; }
         .btn-secondary:hover { background: #e2e8f0; }
-        .btn-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
-        .btn-primary:hover { background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%); transform: translateY(-1px); }
-        .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none !important; }
+        .btn-primary { background: #4f6ef2; color: white; }
+        .btn-primary:hover { background: #3d5cd4; transform: translateY(-1px); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important; }
 
         .loading { display: inline-flex; align-items: center; gap: 8px; }
-        .spinner { width: 16px; height: 16px; border: 2px solid #e2e8f0; border-top: 2px solid #667eea; border-radius: 50%; animation: spin 1s linear infinite; }
+        .spinner { width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top: 2px solid white; border-radius: 50%; animation: spin 1s linear infinite; }
 
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
@@ -74,28 +74,56 @@
 
         .wizard-modal { min-height: 500px; }
         .progress-bar { width: 100%; height: 4px; background: #e5e7eb; border-radius: 2px; overflow: hidden; margin-bottom: 16px; }
-        .progress-fill { height: 100%; background: linear-gradient(90deg, #3b82f6, #1d4ed8); border-radius: 2px; transition: width 0.3s ease; width: 20%; }
+        .progress-fill { height: 100%; background: #4f6ef2; border-radius: 2px; transition: width 0.3s ease; width: 20%; }
         .progress-steps { display: flex; justify-content: space-between; align-items: center; }
         .step { width: 32px; height: 32px; border-radius: 50%; background: #e5e7eb; color: #6b7280; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 14px; transition: all 0.3s ease; }
-        .step.active { background: #3b82f6; color: white; }
-        .step.completed { background: #10b981; color: white; }
+        .step.active { background: #4f6ef2; color: white; }
+        .step.completed { background: #3a9e82; color: white; }
         .wizard-content { min-height: 300px; margin: 20px 0; }
-        .wizard-navigation { display: flex; justify-content: space-between; align-items: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb; }
+        .wizard-navigation { display: flex; justify-content: space-between; align-items: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb; gap: 8px; }
         .step-container { display: none; }
         .step-container.active { display: block; animation: slideUp 0.3s ease; }
         .step-title { font-size: 20px; font-weight: 600; color: #1f2937; margin-bottom: 8px; }
         .step-description { color: #6b7280; font-size: 14px; margin-bottom: 16px; }
 
-        #wizardPreviewMap { width: 100%; height: 200px; border-radius: 8px; border: 2px solid #e2e8f0; }
-        .preview-placeholder { width: 100%; height: 200px; border: 2px dashed #d1d5db; border-radius: 8px; display: flex; align-items: center; justify-content: center; background: #f9fafb; color: #6b7280; font-size: 14px; text-align: center; }
+        .step-preview-grid { display: grid; grid-template-columns: 1fr 280px; gap: 24px; align-items: start; }
+        #wizardPreviewMap { width: 100%; height: 200px; border-radius: 8px; border: 1px solid #e2e8f0; }
+        .preview-placeholder { width: 100%; height: 180px; border: 2px dashed #d1d5db; border-radius: 8px; display: flex; align-items: center; justify-content: center; background: #f9fafb; color: #9ca3af; font-size: 13px; text-align: center; padding: 16px; }
 
         @media (max-width: 768px) {
-            .left-controls { top: 10px; left: 10px; max-width: calc(100% - 140px); }
+            .left-controls { top: 10px; left: 10px; max-width: calc(100% - 70px); }
             .left-controls .control-group { flex-direction: column; align-items: stretch; gap: 8px; }
             .right-controls { top: 10px; right: 10px; }
             .search-container { min-width: auto; width: 100%; }
-            .modal { margin: 20px; width: calc(100% - 40px); padding: 24px; }
+
+            /* Modal as bottom sheet */
+            .modal-overlay { align-items: flex-end; }
+            .modal {
+                width: 100% !important;
+                max-width: 100% !important;
+                max-height: 90vh;
+                border-radius: 16px 16px 0 0;
+                margin: 0;
+                padding: 20px 16px 24px;
+            }
+            .wizard-modal { min-height: unset; }
+
+            /* Navigation buttons wrap and fill */
+            .wizard-navigation { flex-wrap: wrap; }
+            .wizard-navigation .btn { flex: 1; min-width: 100px; text-align: center; padding: 11px 10px; font-size: 13px; }
+
+            /* Collapse multi-column layouts */
             .form-row { grid-template-columns: 1fr; }
+            .step-preview-grid { grid-template-columns: 1fr; }
+
+            /* Palette: 2 columns */
+            .palette-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+            .palette-option { padding: 10px 8px; }
+
+            /* Smaller step indicators */
+            .step { width: 26px; height: 26px; font-size: 12px; }
+            .modal-title { font-size: 16px; }
+            .step-title { font-size: 17px; }
         }
     </style>
 </head>
@@ -122,14 +150,13 @@
         <button class="zoom-btn" id="generateArtBtn" title="Generate Art">🎨</button>
     </div>
 
-    <!-- Art Generation Wizard -->
     <div id="artWizard" class="modal-overlay">
         <div class="modal wizard-modal" style="max-width:900px;">
             <div class="modal-header">
                 <h2 class="modal-title" id="wizardTitle">Generate Art - Step 1 of 5</h2>
                 <button class="modal-close" onclick="closeWizard()">&times;</button>
             </div>
-            <div style="margin:20px 0 30px 0;">
+            <div style="margin:16px 0 24px 0;">
                 <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
                 <div class="progress-steps">
                     <span class="step active" id="step1">1</span>
@@ -141,7 +168,7 @@
             </div>
             <div id="wizardContent" class="wizard-content"></div>
             <div class="wizard-navigation">
-                <button class="btn btn-secondary" id="wizardPrevBtn" onclick="previousStep()" style="display:none;">← Previous</button>
+                <button class="btn btn-secondary" id="wizardPrevBtn" onclick="previousStep()" style="display:none;">← Back</button>
                 <button class="btn btn-secondary" onclick="closeWizard()">Cancel</button>
                 <button class="btn btn-primary" id="wizardNextBtn" onclick="nextStep()">Next →</button>
             </div>
@@ -150,9 +177,6 @@
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-    // ============================================================
-    //  COLOR PALETTES  (ported from color_palettes.py)
-    // ============================================================
     const COLOR_PALETTES = {
         classic: {
             highway: { motorway:'#e892a2', trunk:'#f9b29c', primary:'#fcd6a4', secondary:'#f7fabf', tertiary:'#c8facc', residential:'#f0f0f0', service:'#d0d0d0' },
@@ -223,9 +247,6 @@
         dark_mode:    ['#bb86fc','#03dac6','#cf6679','#f48fb1','#80cbc4']
     };
 
-    // ============================================================
-    //  SEEDED RNG  (mulberry32)
-    // ============================================================
     function createRNG(seed) {
         let s = (seed >>> 0) || 42;
         return function() {
@@ -236,9 +257,6 @@
         };
     }
 
-    // ============================================================
-    //  COLOR HELPERS
-    // ============================================================
     function getColorForElement(paletteName, elementType, elementSubtype) {
         const palette = COLOR_PALETTES[paletteName] || COLOR_PALETTES.classic;
         const section = palette[elementType];
@@ -282,20 +300,6 @@
         } catch(e) { return color; }
     }
 
-    function calcPolygonArea(coords) {
-        if (coords.length < 3) return 0;
-        let area = 0;
-        for (let i = 0; i < coords.length; i++) {
-            const j = (i + 1) % coords.length;
-            area += coords[i][0] * coords[j][1];
-            area -= coords[j][0] * coords[i][1];
-        }
-        return Math.abs(area) / 2;
-    }
-
-    // ============================================================
-    //  BBOX & OVERPASS
-    // ============================================================
     function calcBBox(lat, lon, radiusKm) {
         const latOff = radiusKm / 111.0;
         const lonOff = radiusKm / (111.0 * Math.cos(lat * Math.PI / 180));
@@ -306,7 +310,6 @@
         const [s, w, n, e] = calcBBox(lat, lon, radiusKm);
         const bbox = `${s},${w},${n},${e}`;
         const query = `[out:json][timeout:60];(way["landuse"](${bbox});way["natural"](${bbox});way["building"](${bbox});relation["landuse"](${bbox});relation["natural"](${bbox}););(._;>;);out geom;`;
-
         const resp = await fetch('https://overpass-api.de/api/interpreter', {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -325,11 +328,8 @@
         (data.elements || []).forEach(el => {
             if (el.type !== 'way') return;
             let coords;
-            if (el.geometry && el.geometry.length > 0) {
-                coords = el.geometry.map(p => [p.lat, p.lon]);
-            } else if (el.nodes) {
-                coords = el.nodes.map(id => nodes[id]).filter(Boolean);
-            }
+            if (el.geometry && el.geometry.length > 0) coords = el.geometry.map(p => [p.lat, p.lon]);
+            else if (el.nodes) coords = el.nodes.map(id => nodes[id]).filter(Boolean);
             if (!coords || coords.length < 3) return;
             const tags = el.tags || {};
             if (tags.landuse) result.landuse.push({ coordinates: coords, subtype: tags.landuse });
@@ -339,15 +339,8 @@
         return result;
     }
 
-    // ============================================================
-    //  MAP RENDERING
-    // ============================================================
-    const STYLES = ['organic', 'geometric', 'flow', 'structured'];
-
     function renderOSMData(osmData, leafletMap, config) {
-        const rng = createRNG(config.seed || Math.floor(Math.random() * 999999));
         const layers = [];
-
         function addPolygons(elements, elemType) {
             elements.forEach(el => {
                 if (el.coordinates.length < 3) return;
@@ -356,13 +349,10 @@
                                      (Math.floor(el.coordinates[0][1] * 10000) * 19349663)) % 1000 / 1000;
                 const variationFactor = 1.0 + (spatialHash - 0.5) * (config.colorVariation || 0.3) * 2.0;
                 const color = varyColor(baseColor, variationFactor);
-                L.polygon(el.coordinates, {
-                    color: color, fillColor: color, fillOpacity: 1.0, weight: 0, opacity: 0
-                }).addTo(leafletMap);
+                L.polygon(el.coordinates, { color, fillColor: color, fillOpacity: 1.0, weight: 0, opacity: 0 }).addTo(leafletMap);
                 layers.push({ coords: el.coordinates, color });
             });
         }
-
         addPolygons(osmData.landuse, 'landuse');
         addPolygons(osmData.natural, 'natural');
         addPolygons(osmData.buildings, 'building');
@@ -378,25 +368,22 @@
         return 14;
     }
 
-    // ============================================================
-    //  EXPORT
-    // ============================================================
     function buildExportHTML(config, layers) {
         const bgColor = (COLOR_PALETTES[config.palette] || {}).bg || '#ffffff';
         const isDark = (COLOR_PALETTES[config.palette] || {}).tile === 'dark';
         const tileUrl = isDark
             ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
             : 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
-        const frameCSS = config.frameWidth > 0 ? `
-            .circular-frame { position:fixed;top:50%;left:50%;width:min(100vw,100vh);height:min(100vw,100vh);transform:translate(-50%,-50%);border:${config.frameWidth}px solid ${config.frameColor};border-radius:50%;pointer-events:none;z-index:1000; }
-            #map { clip-path: circle(50% at center); }` : '';
+        const frameCSS = config.frameWidth > 0
+            ? `.circular-frame{position:fixed;top:50%;left:50%;width:min(100vw,100vh);height:min(100vw,100vh);transform:translate(-50%,-50%);border:${config.frameWidth}px solid ${config.frameColor};border-radius:50%;pointer-events:none;z-index:1000;}#map{clip-path:circle(50% at center);}`
+            : '';
         const frameDiv = config.frameWidth > 0 ? '<div class="circular-frame"></div>' : '';
         const neonCSS = ['neon_city','cyberpunk'].includes(config.palette)
-            ? '.leaflet-interactive { filter: drop-shadow(0 0 2px currentColor); }' : '';
+            ? '.leaflet-interactive{filter:drop-shadow(0 0 2px currentColor);}' : '';
         const layerJS = layers.map(l =>
             `L.polygon(${JSON.stringify(l.coords)},{color:'${l.color}',fillColor:'${l.color}',fillOpacity:1,weight:0}).addTo(map);`
         ).join('\n');
-        return `<!DOCTYPE html>\n<html>\n<head>\n<meta charset="UTF-8">\n<title>Generative Map Art</title>\n<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>\n<style>\n*{margin:0;padding:0;box-sizing:border-box;}\nbody{overflow:hidden;}\n#map{width:100vw;height:100vh;background:${bgColor};}\n.leaflet-control-container,.leaflet-control{display:none!important;}\n${frameCSS}\n${neonCSS}\n</style>\n</head>\n<body>\n${frameDiv}\n<div id="map"></div>\n<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"><\/script>\n<script>\nvar map=L.map('map',{center:[${config.lat},${config.lon}],zoom:${config.zoom},zoomControl:false,attributionControl:false});\nL.tileLayer('${tileUrl}',{opacity:0.05,attribution:''}).addTo(map);\n${layerJS}\n<\/script>\n</body>\n</html>`;
+        return `<!DOCTYPE html>\n<html>\n<head>\n<meta charset="UTF-8">\n<title>Generative Map Art</title>\n<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>\n<style>\n*{margin:0;padding:0;box-sizing:border-box;}body{overflow:hidden;}#map{width:100vw;height:100vh;background:${bgColor};}.leaflet-control-container,.leaflet-control{display:none!important;}${frameCSS}${neonCSS}\n</style>\n</head>\n<body>\n${frameDiv}<div id="map"></div>\n<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"><\/script>\n<script>\nvar map=L.map('map',{center:[${config.lat},${config.lon}],zoom:${config.zoom},zoomControl:false,attributionControl:false});\nL.tileLayer('${tileUrl}',{opacity:0.05,attribution:''}).addTo(map);\n${layerJS}\n<\/script>\n</body>\n</html>`;
     }
 
     function downloadHTML(htmlContent, filename) {
@@ -409,34 +396,22 @@
         setTimeout(() => URL.revokeObjectURL(url), 1000);
     }
 
-    // ============================================================
-    //  NOMINATIM SEARCH
-    // ============================================================
     async function searchPlaces(query) {
         const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5&accept-language=es`;
         const resp = await fetch(url, { headers: { 'Accept': 'application/json' } });
         if (!resp.ok) return [];
-        const data = await resp.json();
-        return data.map(r => ({ display_name: r.display_name, lat: parseFloat(r.lat), lon: parseFloat(r.lon) }));
+        return (await resp.json()).map(r => ({ display_name: r.display_name, lat: parseFloat(r.lat), lon: parseFloat(r.lon) }));
     }
 
-    // ============================================================
-    //  MAP INITIALIZATION
-    // ============================================================
     let map;
-    let previewFrameElement;
 
     function initMap() {
         map = L.map('map', { zoomControl: false, attributionControl: false }).setView([40.4168, -3.7038], 13);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
-        previewFrameElement = document.getElementById('previewFrame');
         document.getElementById('zoomInBtn').addEventListener('click', () => map.zoomIn());
         document.getElementById('zoomOutBtn').addEventListener('click', () => map.zoomOut());
     }
 
-    // ============================================================
-    //  SEARCH UI
-    // ============================================================
     function initEventListeners() {
         const searchInput = document.getElementById('searchInput');
         const searchResults = document.getElementById('searchResults');
@@ -477,9 +452,6 @@
         } catch(e) { searchResults.style.display = 'none'; }
     }
 
-    // ============================================================
-    //  WIZARD
-    // ============================================================
     let currentStep = 1;
     const totalSteps = 5;
     let wizardData = { palette: 'classic', seed: null, radius: 1.0, frameColor: '#333333', frameWidth: 10, colorVariation: 0.3 };
@@ -512,22 +484,22 @@
 
     function updateWizardStep() {
         document.getElementById('progressFill').style.width = `${(currentStep / totalSteps) * 100}%`;
-        document.getElementById('wizardTitle').textContent = `Generate Art - Step ${currentStep} of ${totalSteps}`;
+        document.getElementById('wizardTitle').textContent = `Generate Art — Step ${currentStep} of ${totalSteps}`;
         for (let i = 1; i <= totalSteps; i++) {
             const el = document.getElementById(`step${i}`);
             el.classList.remove('active','completed');
             if (i < currentStep) el.classList.add('completed');
             else if (i === currentStep) el.classList.add('active');
         }
-        document.getElementById('wizardPrevBtn').style.display = currentStep > 1 ? 'block' : 'none';
+        const prevBtn = document.getElementById('wizardPrevBtn');
+        prevBtn.style.display = currentStep > 1 ? 'block' : 'none';
         document.getElementById('wizardNextBtn').textContent = currentStep === totalSteps ? '⬇ Download HTML' : 'Next →';
         loadStepContent();
     }
 
     function loadStepContent() {
-        const content = document.getElementById('wizardContent');
-        const stepFns = [null, getStep1, getStep2, getStep3, getStep4, getStep5];
-        content.innerHTML = stepFns[currentStep]();
+        document.getElementById('wizardContent').innerHTML =
+            [null, getStep1, getStep2, getStep3, getStep4, getStep5][currentStep]();
         initStepFunctionality();
     }
 
@@ -549,36 +521,36 @@
                 <div class="form-group">
                     <label class="form-label">Seed (optional)</label>
                     <input type="number" id="wizardSeed" class="form-input" placeholder="Random if empty" value="${wizardData.seed || ''}"/>
-                    <small style="color:#6b7280;">Same seed = reproducible art</small>
+                    <small style="color:#9ca3af;">Same seed = reproducible art</small>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Radius (km)</label>
                     <input type="number" id="wizardRadius" class="form-input" value="${wizardData.radius}" step="0.1" min="0.1" max="10"/>
-                    <small style="color:#6b7280;">Area around current map center</small>
+                    <small style="color:#9ca3af;">Area around current map center</small>
                 </div>
             </div>
             <div class="form-group">
-                <label class="form-label">Color Variation: <span id="cvVal">${wizardData.colorVariation}</span></label>
-                <input type="range" id="wizardCV" class="form-input" min="0" max="1" step="0.05" value="${wizardData.colorVariation}"/>
-                <small style="color:#6b7280;">Higher = more color diversity between adjacent elements</small>
+                <label class="form-label">Color Variation &mdash; <span id="cvVal">${wizardData.colorVariation}</span></label>
+                <input type="range" id="wizardCV" class="form-input" min="0" max="1" step="0.05" value="${wizardData.colorVariation}" style="padding:0;"/>
+                <small style="color:#9ca3af;">Higher = more color diversity between adjacent elements</small>
             </div>
         </div>`;
     }
 
     function getStep3() {
         return `<div class="step-container active">
-            <h3 class="step-title">Circular Frame (Optional)</h3>
+            <h3 class="step-title">Circular Frame</h3>
             <p class="step-description">Add a decorative frame. Set width to 0 to disable.</p>
-            <div style="text-align:center;margin:20px 0;">
-                <div style="width:100px;height:100px;margin:0 auto;border:4px solid ${wizardData.frameColor};border-radius:50%;background:linear-gradient(45deg,#f0f0f0,#e0e0e0);"></div>
+            <div style="text-align:center;margin:16px 0;">
+                <div style="width:90px;height:90px;margin:0 auto;border:4px solid ${wizardData.frameColor};border-radius:50%;background:#f3f4f6;"></div>
             </div>
             <div class="form-row">
                 <div class="form-group">
                     <label class="form-label">Frame Color</label>
-                    <input type="color" id="wizardFrameColor" class="form-input" value="${wizardData.frameColor}"/>
+                    <input type="color" id="wizardFrameColor" class="form-input" value="${wizardData.frameColor}" style="padding:4px 8px;height:44px;"/>
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Frame Width (0 = disabled)</label>
+                    <label class="form-label">Width in px (0 = off)</label>
                     <input type="number" id="wizardFrameWidth" class="form-input" value="${wizardData.frameWidth}" min="0" max="50"/>
                 </div>
             </div>
@@ -587,27 +559,24 @@
 
     function getStep4() {
         return `<div class="step-container active">
-            <h3 class="step-title">Preview & Generate</h3>
-            <p class="step-description">Generate an artistic preview of the current map location. This fetches data from OpenStreetMap.</p>
-            <div style="display:grid;grid-template-columns:1fr 300px;gap:24px;align-items:start;">
+            <h3 class="step-title">Preview</h3>
+            <p class="step-description">Fetch map data from OpenStreetMap and generate a preview for the current location.</p>
+            <div class="step-preview-grid">
                 <div>
-                    <div class="form-group">
-                        <label class="form-label">Summary</label>
-                        <div style="background:#f9fafb;padding:16px;border-radius:8px;font-size:14px;line-height:1.8;">
-                            <strong>Palette:</strong> ${wizardData.palette.replace(/_/g,' ')}<br>
-                            <strong>Seed:</strong> ${wizardData.seed || 'Random'}<br>
-                            <strong>Radius:</strong> ${wizardData.radius} km<br>
-                            <strong>Frame:</strong> ${wizardData.frameWidth > 0 ? wizardData.frameWidth+'px '+wizardData.frameColor : 'None'}<br>
-                            <strong>Color variation:</strong> ${wizardData.colorVariation}
-                        </div>
+                    <div class="form-group" style="background:#f9fafb;padding:14px;border-radius:8px;font-size:13px;line-height:2;margin-bottom:16px;">
+                        <strong>Palette:</strong> ${wizardData.palette.replace(/_/g,' ')}<br>
+                        <strong>Seed:</strong> ${wizardData.seed || 'Random'}<br>
+                        <strong>Radius:</strong> ${wizardData.radius} km<br>
+                        <strong>Frame:</strong> ${wizardData.frameWidth > 0 ? wizardData.frameWidth+'px' : 'None'}<br>
+                        <strong>Variation:</strong> ${wizardData.colorVariation}
                     </div>
-                    <button class="btn btn-primary" id="generatePreviewBtn" style="width:100%;">🗺 Generate Preview</button>
-                    <p style="font-size:12px;color:#6b7280;margin-top:8px;">Data loaded from OpenStreetMap via Overpass API. May take a few seconds.</p>
+                    <button class="btn btn-primary" id="generatePreviewBtn" style="width:100%;">&#128506; Generate Preview</button>
+                    <p style="font-size:11px;color:#9ca3af;margin-top:8px;">May take a few seconds depending on area size.</p>
                 </div>
                 <div>
                     <label class="form-label">Preview</label>
                     <div id="wizardPreviewContainer">
-                        <div class="preview-placeholder"><div>Click "Generate Preview"<br>to see a preview</div></div>
+                        <div class="preview-placeholder">Click “Generate Preview”<br>to render the map</div>
                     </div>
                 </div>
             </div>
@@ -618,16 +587,19 @@
         const hasLayers = generatedLayers.length > 0;
         return `<div class="step-container active">
             <h3 class="step-title">Download</h3>
-            <p class="step-description">Download your generative map as a self-contained HTML file you can open in any browser.</p>
-            ${hasLayers ? `
-            <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:16px;margin-bottom:20px;">
-                ✅ Map generated with <strong>${generatedLayers.length} elements</strong>. Ready to download.
-            </div>
-            <p style="font-size:13px;color:#6b7280;margin-bottom:16px;">The downloaded file is a standalone HTML page. Open it in your browser and use <strong>Print → Save as PDF</strong> to export as image.</p>` : `
-            <div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:16px;margin-bottom:20px;">
-                ⚠️ No preview generated yet. Go back to Step 4 to generate a preview first.
-            </div>`}
-            <button class="btn btn-primary" id="downloadHTMLBtn" ${hasLayers ? '' : 'disabled'} style="width:100%;margin-bottom:12px;">⬇ Download as HTML</button>
+            <p class="step-description">Download your map as a self-contained HTML file.</p>
+            ${hasLayers
+                ? `<div style="background:#f0fdf4;border:1px solid #d1fae5;border-radius:8px;padding:14px;margin-bottom:16px;font-size:14px;">
+                    &#10003; Ready &mdash; <strong>${generatedLayers.length} polygons</strong> generated.
+                   </div>
+                   <p style="font-size:13px;color:#6b7280;margin-bottom:16px;">Open the file in your browser. Use <strong>Print &rarr; Save as PDF</strong> to export as image.</p>`
+                : `<div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:14px;margin-bottom:16px;font-size:14px;">
+                    &#9888; Go back to Step 4 and generate a preview first.
+                   </div>`
+            }
+            <button class="btn btn-primary" id="downloadHTMLBtn" ${hasLayers ? '' : 'disabled'} style="width:100%;">
+                &#8681; Download as HTML
+            </button>
         </div>`;
     }
 
@@ -643,7 +615,7 @@
         }
         if (currentStep === 2) {
             const cv = document.getElementById('wizardCV');
-            if (cv) cv.addEventListener('input', e => { document.getElementById('cvVal').textContent = e.target.value; });
+            if (cv) cv.addEventListener('input', e => { document.getElementById('cvVal').textContent = parseFloat(e.target.value).toFixed(2); });
         }
         if (currentStep === 4) {
             const btn = document.getElementById('generatePreviewBtn');
@@ -684,14 +656,14 @@
         const container = document.getElementById('wizardPreviewContainer');
         if (!btn || !container) return;
         btn.disabled = true;
-        btn.innerHTML = '<div class="loading"><div class="spinner"></div> Fetching OSM data...</div>';
+        btn.innerHTML = '<div class="loading"><div class="spinner"></div> Loading…</div>';
         try {
             const center = map.getCenter();
             if (previewLeafletMap) { previewLeafletMap.remove(); previewLeafletMap = null; }
-            container.innerHTML = '<div id="wizardPreviewMap" style="width:100%;height:200px;border-radius:8px;"></div>';
+            container.innerHTML = '<div id="wizardPreviewMap"></div>';
             const previewDiv = document.getElementById('wizardPreviewMap');
             const osmData = await fetchOSMData(center.lat, center.lng, wizardData.radius);
-            const totalFeatures = osmData.landuse.length + osmData.natural.length + osmData.buildings.length;
+            const total = osmData.landuse.length + osmData.natural.length + osmData.buildings.length;
             const zoom = getZoomForRadius(wizardData.radius);
             const palette = COLOR_PALETTES[wizardData.palette] || COLOR_PALETTES.classic;
             const isDark = palette.tile === 'dark';
@@ -710,13 +682,13 @@
             };
             generatedLayers = renderOSMData(osmData, previewLeafletMap, config);
             generatedConfig = { ...config, lat: center.lat, lon: center.lng, zoom };
-            setTimeout(() => previewLeafletMap && previewLeafletMap.invalidateSize(), 100);
-            showNotification(`Preview ready — ${totalFeatures} features, ${generatedLayers.length} polygons`, 'success');
-            btn.textContent = '🔄 Regenerate Preview';
+            setTimeout(() => previewLeafletMap && previewLeafletMap.invalidateSize(), 150);
+            showNotification(`Preview ready — ${total} features, ${generatedLayers.length} polygons`, 'success');
+            btn.textContent = '🔄 Regenerate';
         } catch(e) {
-            container.innerHTML = `<div class="preview-placeholder" style="color:#ef4444;">Error: ${e.message}</div>`;
+            container.innerHTML = `<div class="preview-placeholder" style="color:#c0392b;">${e.message}</div>`;
             showNotification('Error: ' + e.message, 'error');
-            btn.textContent = '🗺 Generate Preview';
+            btn.textContent = '&#128506; Generate Preview';
         } finally {
             btn.disabled = false;
         }
@@ -728,26 +700,19 @@
             if (!fromStep5) { currentStep = 4; updateWizardStep(); }
             return;
         }
-        const html = buildExportHTML(generatedConfig, generatedLayers);
-        downloadHTML(html, `generative-map-${Date.now()}.html`);
-        showNotification('Map downloaded! Open the HTML file in your browser.', 'success');
+        downloadHTML(buildExportHTML(generatedConfig, generatedLayers), `generative-map-${Date.now()}.html`);
+        showNotification('Downloaded! Open the HTML file in your browser.', 'success');
     }
 
-    // ============================================================
-    //  NOTIFICATIONS
-    // ============================================================
     function showNotification(message, type) {
-        const colors = { success: 'linear-gradient(135deg,#10b981,#065f46)', error: 'linear-gradient(135deg,#ef4444,#dc2626)', info: 'linear-gradient(135deg,#3b82f6,#1d4ed8)' };
+        const colors = { success: '#2d8f72', error: '#c0392b', info: '#4f6ef2' };
         const el = document.createElement('div');
-        el.style.cssText = `position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:3000;padding:12px 20px;border-radius:8px;font-size:14px;font-weight:500;color:white;max-width:420px;text-align:center;animation:slideInUp 0.3s ease;background:${colors[type]||colors.info};`;
+        el.style.cssText = `position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:3000;padding:12px 20px;border-radius:8px;font-size:14px;font-weight:500;color:white;max-width:90vw;text-align:center;animation:slideInUp 0.3s ease;background:${colors[type]||colors.info};box-shadow:0 4px 16px rgba(0,0,0,0.15);`;
         el.textContent = message;
         document.body.appendChild(el);
         setTimeout(() => { el.style.animation = 'slideOutDown 0.3s ease forwards'; setTimeout(() => el.remove(), 300); }, 4000);
     }
 
-    // ============================================================
-    //  BOOT
-    // ============================================================
     document.addEventListener('DOMContentLoaded', () => { initMap(); initEventListeners(); });
     </script>
 </body>
