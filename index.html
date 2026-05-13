@@ -368,32 +368,71 @@
         return 14;
     }
 
-    function buildExportHTML(config, layers) {
-        const bgColor = (COLOR_PALETTES[config.palette] || {}).bg || '#ffffff';
-        const isDark = (COLOR_PALETTES[config.palette] || {}).tile === 'dark';
-        const tileUrl = isDark
-            ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
-            : 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
-        const frameCSS = config.frameWidth > 0
-            ? `.circular-frame{position:fixed;top:50%;left:50%;width:min(100vw,100vh);height:min(100vw,100vh);transform:translate(-50%,-50%);border:${config.frameWidth}px solid ${config.frameColor};border-radius:50%;pointer-events:none;z-index:1000;}#map{clip-path:circle(50% at center);}`
-            : '';
-        const frameDiv = config.frameWidth > 0 ? '<div class="circular-frame"></div>' : '';
-        const neonCSS = ['neon_city','cyberpunk'].includes(config.palette)
-            ? '.leaflet-interactive{filter:drop-shadow(0 0 2px currentColor);}' : '';
-        const layerJS = layers.map(l =>
-            `L.polygon(${JSON.stringify(l.coords)},{color:'${l.color}',fillColor:'${l.color}',fillOpacity:1,weight:0}).addTo(map);`
-        ).join('\n');
-        return `<!DOCTYPE html>\n<html>\n<head>\n<meta charset="UTF-8">\n<title>Generative Map Art</title>\n<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>\n<style>\n*{margin:0;padding:0;box-sizing:border-box;}body{overflow:hidden;}#map{width:100vw;height:100vh;background:${bgColor};}.leaflet-control-container,.leaflet-control{display:none!important;}${frameCSS}${neonCSS}\n</style>\n</head>\n<body>\n${frameDiv}<div id="map"></div>\n<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"><\/script>\n<script>\nvar map=L.map('map',{center:[${config.lat},${config.lon}],zoom:${config.zoom},zoomControl:false,attributionControl:false});\nL.tileLayer('${tileUrl}',{opacity:0.05,attribution:''}).addTo(map);\n${layerJS}\n<\/script>\n</body>\n</html>`;
-    }
+    function downloadPNG(config, layers, size = 1200) {
+        const canvas = document.createElement('canvas');
+        canvas.width = size;
+        canvas.height = size;
+        const ctx = canvas.getContext('2d');
 
-    function downloadHTML(htmlContent, filename) {
-        const blob = new Blob([htmlContent], { type: 'text/html' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url; a.download = filename;
-        document.body.appendChild(a); a.click();
-        document.body.removeChild(a);
-        setTimeout(() => URL.revokeObjectURL(url), 1000);
+        const palette = COLOR_PALETTES[config.palette] || COLOR_PALETTES.classic;
+        ctx.fillStyle = palette.bg || '#ffffff';
+        ctx.fillRect(0, 0, size, size);
+
+        if (!layers.length) return;
+
+        let minLat = Infinity, maxLat = -Infinity, minLon = Infinity, maxLon = -Infinity;
+        for (const l of layers) {
+            for (const [lat, lon] of l.coords) {
+                if (lat < minLat) minLat = lat;
+                if (lat > maxLat) maxLat = lat;
+                if (lon < minLon) minLon = lon;
+                if (lon > maxLon) maxLon = lon;
+            }
+        }
+
+        const toMercY = lat => Math.log(Math.tan(Math.PI / 4 + (lat * Math.PI / 180) / 2));
+        const minY = toMercY(minLat), maxY = toMercY(maxLat);
+        const pad = size * 0.04;
+        const w = size - pad * 2, h = size - pad * 2;
+        const projX = lon => pad + (lon - minLon) / ((maxLon - minLon) || 1) * w;
+        const projY = lat => size - pad - (toMercY(lat) - minY) / ((maxY - minY) || 1) * h;
+
+        if (config.frameWidth > 0) {
+            ctx.save();
+            ctx.beginPath();
+            ctx.arc(size / 2, size / 2, size / 2 - config.frameWidth, 0, Math.PI * 2);
+            ctx.clip();
+        }
+
+        for (const layer of layers) {
+            if (layer.coords.length < 3) continue;
+            ctx.beginPath();
+            ctx.moveTo(projX(layer.coords[0][1]), projY(layer.coords[0][0]));
+            for (let i = 1; i < layer.coords.length; i++) {
+                ctx.lineTo(projX(layer.coords[i][1]), projY(layer.coords[i][0]));
+            }
+            ctx.closePath();
+            ctx.fillStyle = layer.color;
+            ctx.fill();
+        }
+
+        if (config.frameWidth > 0) {
+            ctx.restore();
+            ctx.beginPath();
+            ctx.arc(size / 2, size / 2, size / 2 - config.frameWidth / 2, 0, Math.PI * 2);
+            ctx.strokeStyle = config.frameColor;
+            ctx.lineWidth = config.frameWidth;
+            ctx.stroke();
+        }
+
+        canvas.toBlob(blob => {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = `generative-map-${Date.now()}.png`;
+            document.body.appendChild(a); a.click();
+            document.body.removeChild(a);
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
+        }, 'image/png');
     }
 
     async function searchPlaces(query) {
@@ -493,7 +532,7 @@
         }
         const prevBtn = document.getElementById('wizardPrevBtn');
         prevBtn.style.display = currentStep > 1 ? 'block' : 'none';
-        document.getElementById('wizardNextBtn').textContent = currentStep === totalSteps ? '⬇ Download HTML' : 'Next →';
+        document.getElementById('wizardNextBtn').textContent = currentStep === totalSteps ? '⬇ Download PNG' : 'Next →';
         loadStepContent();
     }
 
@@ -576,7 +615,7 @@
                 <div>
                     <label class="form-label">Preview</label>
                     <div id="wizardPreviewContainer">
-                        <div class="preview-placeholder">Click “Generate Preview”<br>to render the map</div>
+                        <div class="preview-placeholder">Click "Generate Preview"<br>to render the map</div>
                     </div>
                 </div>
             </div>
@@ -587,18 +626,17 @@
         const hasLayers = generatedLayers.length > 0;
         return `<div class="step-container active">
             <h3 class="step-title">Download</h3>
-            <p class="step-description">Download your map as a self-contained HTML file.</p>
+            <p class="step-description">Download your generative map as a PNG image (1200×1200 px).</p>
             ${hasLayers
                 ? `<div style="background:#f0fdf4;border:1px solid #d1fae5;border-radius:8px;padding:14px;margin-bottom:16px;font-size:14px;">
                     &#10003; Ready &mdash; <strong>${generatedLayers.length} polygons</strong> generated.
-                   </div>
-                   <p style="font-size:13px;color:#6b7280;margin-bottom:16px;">Open the file in your browser. Use <strong>Print &rarr; Save as PDF</strong> to export as image.</p>`
+                   </div>`
                 : `<div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:14px;margin-bottom:16px;font-size:14px;">
                     &#9888; Go back to Step 4 and generate a preview first.
                    </div>`
             }
-            <button class="btn btn-primary" id="downloadHTMLBtn" ${hasLayers ? '' : 'disabled'} style="width:100%;">
-                &#8681; Download as HTML
+            <button class="btn btn-primary" id="downloadPNGBtn" ${hasLayers ? '' : 'disabled'} style="width:100%;">
+                &#8681; Download as PNG
             </button>
         </div>`;
     }
@@ -622,7 +660,7 @@
             if (btn) btn.addEventListener('click', generatePreview);
         }
         if (currentStep === 5) {
-            const btn = document.getElementById('downloadHTMLBtn');
+            const btn = document.getElementById('downloadPNGBtn');
             if (btn) btn.addEventListener('click', () => exportFromWizard(true));
         }
     }
@@ -700,8 +738,8 @@
             if (!fromStep5) { currentStep = 4; updateWizardStep(); }
             return;
         }
-        downloadHTML(buildExportHTML(generatedConfig, generatedLayers), `generative-map-${Date.now()}.html`);
-        showNotification('Downloaded! Open the HTML file in your browser.', 'success');
+        downloadPNG(generatedConfig, generatedLayers);
+        showNotification('Downloading PNG…', 'success');
     }
 
     function showNotification(message, type) {
